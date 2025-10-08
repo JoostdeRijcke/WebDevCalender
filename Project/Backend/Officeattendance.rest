@@ -1,0 +1,15 @@
+### Book Attendance
+POST http://localhost:5001/OfficeAttendance
+Content-Type: application/json
+
+{
+    "UserId": 2,
+    "Date": "2024-11-10"
+}
+
+### Delete Attendance
+DELETE http://localhost:5001/OfficeAttendance/2/2024-11-10
+
+### office see
+
+GET http://localhost:5001/OfficeAttendance/2024-11-10

@@ -1,0 +1,89 @@
+# Admin Login
+GET http://localhost:5001/api/SimulateAdminLogin
+Cookie: AdminLoggedIn=admin1
+
+
+################
+
+# User Login
+POST http://localhost:5001/api/SimulateUserLogin
+Cookie: UserLoggedIn=John
+
+
+################
+
+# Get All Events
+GET http://localhost:5001/api/Events
+#####
+
+# Get Event By ID
+GET http://localhost:5001/api/Events/1
+#####
+
+# Add New Event (Admin Only)
+POST http://localhost:5001/api/Events
+Content-Type: application/json
+
+
+  {
+  "Title": "Updated Annual Conference",
+  "Description": "An updated description for the conference.",
+  "Date": "2024-11-15",
+  "StartTime": "10:00:00",
+  "EndTime": "18:00:00",
+  "Location": "Convention Center, Hall B",
+  "AdminApproval": true
+}
+
+
+####
+
+# Update Existing Event (Admin Only)
+PUT http://localhost:5001/api/Events/3
+Content-Type: application/json
+
+{
+  "title": "Updated Annual Conference",
+  "description": "An updated description for the conference.",
+  "date": "2024-11-15",
+  "startTime": "10:00:00",
+  "endTime": "18:00:00",
+  "location": "Convention Center, Hall B",
+  "adminApproval": true
+}
+
+####
+
+# Delete Event (Admin Only)
+DELETE http://localhost:5001/api/Events/7
+####
+
+# Get All Reviews
+GET http://localhost:5001/api/Events/reviews
+####
+
+# Add Review
+POST http://localhost:5001/api/Events/review
+Content-Type: application/json
+
+{
+  "userId": 3,
+  "eventId": 1,
+  "rating": 5,
+  "feedback": "Great event! Learned a lot."
+}
+
+####
+
+# Search Events by Title
+GET http://localhost:5001/api/Events/search?title=Annual
+####
+
+# Search Events by Location
+GET http://localhost:5001/api/Events/search?location=Convention
+####
+
+# Search Events by Date Range
+GET http://localhost:5001/api/Events/search?startDate=2024-11-10&endDate=2024-11-20
+####
+

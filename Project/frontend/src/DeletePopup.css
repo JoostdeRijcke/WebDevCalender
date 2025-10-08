@@ -1,0 +1,56 @@
+/* Popup Overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* semi-transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* make sure the popup is on top */
+}
+
+/* Popup Container */
+.popup-container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Popup Message */
+.popup-message {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+/* Button Styles */
+.popup-cancel, .popup-delete {
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.popup-cancel {
+  background-color: #ccc;
+  border: 1px solid #bbb;
+}
+
+.popup-delete {
+  background-color: red;
+  color: white;
+  border: 1px solid #bb0000;
+}
+
+.popup-cancel:hover {
+  background-color: #aaa;
+}
+
+.popup-delete:hover {
+  background-color: darkred;
+}

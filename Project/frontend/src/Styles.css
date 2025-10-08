@@ -1,0 +1,27 @@
+/* styles.css */
+
+/* Default light mode */
+body {
+    background-color: white;
+    color: black;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  /* Dark mode */
+  body.dark-mode {
+    background-color: black;
+    color: white;
+  }
+  
+  button {
+    margin: 10px;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  body.dark-mode button {
+    background-color: gray;
+    color: white;
+  }
+  

@@ -1,0 +1,76 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.back-button {
+  align-self: flex-start;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: transparent;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.input,
+.textarea {
+  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.textarea {
+  resize: none;
+  height: 100px;
+}
+
+.alter-button {
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 5px;
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.alter-button:hover {
+  background-color: #0056b3;
+}
+
+/* Style for the time input fields (Begin Time and End Time) */
+.input[type="time"] {
+  width: 290px; /* Adjust width to make time inputs smaller */
+  padding: 5px;
+  font-size: 12px;
+}
+
+.label {
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: #333;
+}

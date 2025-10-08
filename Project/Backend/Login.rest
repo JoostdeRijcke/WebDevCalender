@@ -1,0 +1,76 @@
+#test if there is an connection
+GET http://localhost:5001/hi
+#######
+
+#Invallid input
+POST http://localhost:5001/api/Login
+Content-Type: application/json
+
+{
+  "username": null,
+  "password": null
+}
+################
+
+#Wrong input
+POST http://localhost:5001/api/Login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "idontknow"
+}
+################
+
+#Admin Login
+POST http://localhost:5001/api/Login
+Content-Type: application/json
+
+{
+  "email": "admin1@example.com",
+  "password": "adminpass1"
+}
+################
+
+#User login
+POST http://localhost:5001/api/Login
+Content-Type: application/json
+
+{
+  "email": "Test@Tester.nl",
+  "password": "secret"
+}
+################
+
+
+#check if the Admin is logged in
+GET http://localhost:5001/api/IsAdminLoggedIn
+###################
+POST http://localhost:5001/api/Register 
+Content-Type: application/json
+
+{
+"Id": 8, "Firstname": "Test", "LastName": "Tester", "Email":"Test@Tester.nl", "password": "secret", "RecurringDays": 5
+}
+##################
+#check if the User is logged in
+GET http://localhost:5001/api/IsUserLoggedIn
+###################
+GET http://localhost:5001/api/ForgotPassword
+########################
+PUT http://localhost:5001/api/Password
+Content-Type: application/json
+
+{
+  "email": "joostderijcke76@gmail.com",
+  "password": "datmagjenietweten"
+}
+########################
+#logout User
+GET http://localhost:5001/api/Logout
+###################
+
+
+#logout Admin
+GET http://localhost:5001/api/AdminLogout
+###################

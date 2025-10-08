@@ -1,0 +1,74 @@
+# Admin Login
+GET http://localhost:5001/api/SimulateAdminLogin
+Cookie: AdminLoggedIn=admin1
+
+### Test POST: Attend an event (valid)
+POST http://localhost:5001/api/EventAttendance/attend
+Content-Type: application/json
+
+{
+    "userId": 2,
+    "eventId": 5
+}
+
+
+### Test POST: Attend an event (user or event not found)
+POST http://localhost:5001/api/EventAttendance/attend
+Content-Type: application/json
+
+{
+    "userId": 999,
+    "eventId": 999
+}
+
+### Test POST: Attend an event (user already attended)
+POST http://localhost:5001/api/EventAttendance/attend
+Content-Type: application/json
+
+{
+    "userId": 1,
+    "eventId": 1
+}
+
+### ADMIN ONLY ---------------------------------------------------
+
+### Test GET: List attendees for an event (valid event)
+GET http://localhost:5001/api/EventAttendance/attendees/5
+
+### Test GET: List attendees for an event (event not found)
+GET http://localhost:5001/api/EventAttendance/attendees/999
+
+### Test GET: List attendees for an event (no attendees found)
+GET http://localhost:5001/api/EventAttendance/attendees/2
+
+### Test GET: List attended events for a user (valid user)
+GET http://localhost:5001/api/EventAttendance/user/1/attended-events
+
+### --------------------------------------------------------------
+
+### Test DELETE: Remove attendance (valid)
+DELETE http://localhost:5001/api/EventAttendance/remove
+Content-Type: application/json
+
+{
+    "userId": 1,
+    "eventId": 1
+}
+
+### Test DELETE: Remove attendance (event not found)
+DELETE http://localhost:5001/api/EventAttendance/remove
+Content-Type: application/json
+
+{
+    "userId": 1,
+    "eventId": 999
+}
+
+### Test DELETE: Remove attendance (attendance record not found)
+DELETE http://localhost:5001/api/EventAttendance/remove
+Content-Type: application/json
+
+{
+    "userId": 999,
+    "eventId": 1
+}
