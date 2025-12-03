@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './LoginPage.css';
-import logo from './calender.png';
+import '../styling/LoginPage.css';
+import logo from '../calender.png';
 
 export const UserInput: React.FC = () => {
   const [username, setUsername] = useState<string>(''); // State for username
