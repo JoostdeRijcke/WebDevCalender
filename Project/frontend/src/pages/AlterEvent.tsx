@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./AlterEvent.css";
+import "../styling/AlterEvent.css";
 
 export const AlterEvent: React.FC = () => {
   const [Id, setId] = useState("");
