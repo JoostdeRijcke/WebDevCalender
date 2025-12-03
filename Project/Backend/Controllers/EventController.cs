@@ -16,27 +16,45 @@ namespace CalendifyApp.Controllers
             _eventService = eventService;
         }
 
-        // GET /api/Events?onlyUpcoming=true
         [HttpGet]
         public IActionResult GetAllEvents([FromQuery] bool onlyUpcoming = false)
         {
-            // Service levert DetailedEventDTO's
             var events = _eventService.GetAllEvents();
+
+            Console.WriteLine($"GetAllEvents called - onlyUpcoming: {onlyUpcoming}");
+
             if (events == null || !events.Any())
                 return NotFound("No events available.");
 
             if (onlyUpcoming)
             {
-                var now = DateTime.UtcNow; // gebruik consistent UTC als je dit ook zo opslaat
-                events = events
-                    .Where(e => GetEndDateTimeUtc(e) >= now)
-                    .OrderBy(e => GetEndDateTimeUtc(e))
-                    .ToList();
+                var now = DateTime.UtcNow;
+                events = events.Where(e =>
+                {
+                    DateTime endDateTime = e.Date.Date.Add(e.EndTime);
+
+                    // Behandel als local time en converteer naar UTC
+                    if (endDateTime.Kind == DateTimeKind.Unspecified)
+                    {
+                        endDateTime = DateTime.SpecifyKind(endDateTime, DateTimeKind.Local).ToUniversalTime();
+                    }
+
+                    return endDateTime >= now;
+                }).ToList();
+
+                Console.WriteLine($"Filtered to {events.Count} upcoming events:");
+                foreach (var e in events)
+                {
+                    Console.WriteLine($"  - {e.Title}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Returning all {events.Count} events (no filter)");
             }
 
             return Ok(events);
         }
-
         [HttpGet("upcoming")]
         public IActionResult GetUpcoming()
         {

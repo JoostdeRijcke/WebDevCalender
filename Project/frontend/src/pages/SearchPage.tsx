@@ -8,7 +8,7 @@ import Modal from "../components/Modal";
 import AttendeesList from "../components/AttendeesList";
 import { getEvents, getEventAttendees } from "../api/events";
 import { attendEvent, getAttendedEventsByUser, leaveEvent } from "../api/attendance";
-import { isUpcoming, eventEndDate } from "../utils/EventTime"; // let op: hoofdletters zoals jouw bestand
+import { eventEndDate } from "../utils/EventTime";
 
 const SearchPage: React.FC = () => {
     // ---------- State ----------
@@ -28,8 +28,9 @@ const SearchPage: React.FC = () => {
     useEffect(() => {
         const load = async () => {
             try {
+                // Backend filtert nu al op toekomstige events
                 const [evs, myEvs] = await Promise.all([
-                    getEvents(),
+                    getEvents(true), // onlyUpcoming = true
                     getAttendedEventsByUser(loggedInUserId),
                 ]);
                 setEvents(evs);
@@ -50,15 +51,12 @@ const SearchPage: React.FC = () => {
 
     // ---------- Filter + zoek ----------
     const filteredEvents = useMemo<Event[]>(() => {
-        const now = new Date();
-
-        const upcoming = events
-            .filter((e: Event) => isUpcoming(e, now)) // alleen toekomstige events
-            .slice()                                  // kopie, geen mutatie van state
-            .sort(byEndAsc);                          // sorteer op eerstvolgende
+        // Backend heeft al gefilterd op toekomstige events
+        // Hier alleen sorteren en zoeken
+        const sorted = events.slice().sort(byEndAsc);
 
         const q = (search ?? "").trim().toLowerCase();
-        return q ? upcoming.filter((e: Event) => e.title.toLowerCase().includes(q)) : upcoming;
+        return q ? sorted.filter((e: Event) => e.title.toLowerCase().includes(q)) : sorted;
     }, [events, search]);
 
     // ---------- Handlers ----------
