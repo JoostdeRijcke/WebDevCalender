@@ -10,7 +10,7 @@ import { RegisterPopup } from './ResgisterPopup';
 import { DeleteEvent } from './DeletePopup';
 import { ForgotPassword } from './ForgotPassword';
 
-import SearchPage from './SearchPage';
+import SearchPage from './pages/SearchPage';
 import './Styles.css';
 
 const App: React.FC = () => {

@@ -48,7 +48,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/Events');
+        const response = await fetch('http://localhost:5001/api/Events?onlyUpcoming=true');
         if (!response.ok) throw new Error(`Error: ${response.status}`);
         const data: Event[] = await response.json();
         setEvents(data);
@@ -85,11 +85,24 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
 
     filters.forEach((filter) => {
       if (filter.type === 'dateRange') {
-        const [startDate, endDate] = filter.value.split(' to ').map((d: string) => new Date(d));
-        filtered = filtered.filter((event) => {
-          const eventDate = new Date(event.date);
-          return eventDate >= startDate && eventDate <= endDate;
-        });
+        const dates = filter.value.split(' to ');
+        if (dates.length === 2) {
+          const startDate = new Date(dates[0].trim());
+          const endDate = new Date(dates[1].trim());
+
+          // Validate dates are valid
+          if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+            filtered = filtered.filter((event) => {
+              const eventDate = new Date(event.date);
+              // Normalize to compare dates only (ignore time)
+              const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+              const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+              const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+              return eventDateOnly >= startDateOnly && eventDateOnly <= endDateOnly;
+            });
+          }
+        }
       }
       if (filter.type === 'location') {
         filtered = filtered.filter((event) =>
@@ -98,7 +111,8 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
       }
       if (filter.type === 'keyword') {
         filtered = filtered.filter((event) =>
-          event.title.toLowerCase().includes(filter.value.toLowerCase())
+          event.title.toLowerCase().includes(filter.value.toLowerCase()) ||
+          event.description.toLowerCase().includes(filter.value.toLowerCase())
         );
       }
     });
@@ -259,6 +273,8 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
               ))}
               <div style={styles.addFilter}>
                 <select
+                  id="filterType"
+                  name="filterType"
                   value={newFilterType}
                   onChange={(e) => setNewFilterType(e.target.value as FilterType)}
                   style={styles.filterSelect}
@@ -268,6 +284,8 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
                   <option value="keyword">Keyword</option>
                 </select>
                 <input
+                  id="filterValue"
+                  name="filterValue"
                   type="text"
                   placeholder="Enter filter value"
                   value={newFilterValue}
@@ -284,6 +302,8 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
 
         {/* Search Bar */}
         <input
+          id="searchQuery"
+          name="searchQuery"
           type="text"
           placeholder="Search events by title..."
           value={searchQuery}
