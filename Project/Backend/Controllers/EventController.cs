@@ -21,8 +21,6 @@ namespace CalendifyApp.Controllers
         {
             var events = _eventService.GetAllEvents();
 
-            Console.WriteLine($"GetAllEvents called - onlyUpcoming: {onlyUpcoming}");
-
             if (events == null || !events.Any())
                 return NotFound("No events available.");
 
@@ -41,16 +39,6 @@ namespace CalendifyApp.Controllers
 
                     return endDateTime >= now;
                 }).ToList();
-
-                Console.WriteLine($"Filtered to {events.Count} upcoming events:");
-                foreach (var e in events)
-                {
-                    Console.WriteLine($"  - {e.Title}");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"Returning all {events.Count} events (no filter)");
             }
 
             return Ok(events);

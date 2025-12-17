@@ -36,7 +36,7 @@ const SearchPage: React.FC = () => {
                 setEvents(evs);
                 setAttendedIds(myEvs.map((e) => e.id));
             } catch (e) {
-                console.error(e);
+                console.error("Error loading events:", e);
             }
         };
         load();

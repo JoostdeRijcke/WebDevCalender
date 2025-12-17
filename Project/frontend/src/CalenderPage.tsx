@@ -41,20 +41,10 @@ export const CalendarPage: React.FC = () => {
 
   const getEvents = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/Events?onlyUpcoming=true', {
-      });
+      const response = await fetch('http://localhost:5001/api/Events');
 
       if (response.ok) {
-        console.log('Get events successful: ', response.statusText);
         const data = await response.json();
-        console.log('Data gekregen van API:', data);
-        console.log('AANTAL EVENTS:', data.length); // <-- VOEG DIT TOE
-        setEvents(data);
-      }
-      else if (response.ok) {
-        console.log('Get events successful: ', response.statusText);
-        const data = await response.json();
-        console.log('Data gekregen van API:', data);
         setEvents(data);
       } else {
         alert('Unable to load events')
