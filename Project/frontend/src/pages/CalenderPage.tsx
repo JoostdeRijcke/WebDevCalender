@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './CalenderPage.css';
+import '../styling/CalenderPage.css';
 import { useNavigate } from 'react-router-dom';
 
 
