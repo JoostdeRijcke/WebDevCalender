@@ -1,13 +1,21 @@
 using CalendifyApp.Models;
+using CalendifyApp.Repositories.Implementations;
+using CalendifyApp.Repositories.Interfaces;
 using CalendifyApp.Seeders; // Import the seeder namespace
 using CalendifyApp.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
+
+// Register Unit of Work and Repositories
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Register Services
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventAttendanceService, EventAttendanceService>();
+builder.Services.AddScoped<IOfficeAttendanceService, OfficeAttendanceService>();
 builder.Logging.AddConsole();
 builder.Services.AddDistributedMemoryCache(); // For session storage
 builder.Services.AddCors(options =>

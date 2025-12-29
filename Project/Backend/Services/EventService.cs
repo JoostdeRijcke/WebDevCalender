@@ -1,43 +1,43 @@
 using CalendifyApp.Models;
+using CalendifyApp.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace CalendifyApp.Services
 {
     public class EventService : IEventService
     {
-        private readonly MyContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public EventService(MyContext context)
+        public EventService(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public List<DetailedEventDTO> GetAllEvents()
         {
-            return _context.Events
-                .Include(e => e.EventAttendances) // Include for potential counts, even if null
-                .Select(e => new DetailedEventDTO
-                {
-                    Id = e.Id,
-                    Title = e.Title,
-                    Description = e.Description,
-                    Date = e.Date,
-                    StartTime = e.StartTime,
-                    EndTime = e.EndTime,
-                    Location = e.Location,
-                    AdminApproval = e.AdminApproval
-                })
+            var events = _unitOfWork.Events
+                .Include(e => e.EventAttendances)
                 .ToList();
+
+            return events.Select(e => new DetailedEventDTO
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Description = e.Description,
+                Date = e.Date,
+                StartTime = e.StartTime,
+                EndTime = e.EndTime,
+                Location = e.Location,
+                AdminApproval = e.AdminApproval
+            }).ToList();
         }
 
 
         public DetailedEventDTO? GetEventById(int id)
         {
-            var eventEntity = _context.Events
-                .Include(e => e.EventAttendances)
-                .FirstOrDefault(e => e.Id == id);
+            var eventEntity = _unitOfWork.Events.GetEventWithAttendeesAsync(id).Result;
 
-            if (eventEntity == null) 
+            if (eventEntity == null)
             {
                 Console.WriteLine($"No event found with ID: {id}");
                 return null;
@@ -76,15 +76,15 @@ namespace CalendifyApp.Services
             };
 
             // Add event to the database
-            _context.Events.Add(eventToAdd);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Events.AddAsync(eventToAdd);
+            await _unitOfWork.SaveChangesAsync();
 
             return eventToAdd; // Return the saved event
         }
 
         public bool UpdateEvent(int id, UpdateEventDTO updatedEvent)
         {
-            var existingEvent = _context.Events.FirstOrDefault(e => e.Id == id);
+            var existingEvent = _unitOfWork.Events.GetByIdAsync(id).Result;
             if (existingEvent == null) return false;
 
             // Update fields
@@ -96,32 +96,32 @@ namespace CalendifyApp.Services
             existingEvent.Location = updatedEvent.Location;
             existingEvent.AdminApproval = updatedEvent.AdminApproval;
 
-            _context.SaveChanges();
+            _unitOfWork.Events.UpdateAsync(existingEvent).Wait();
+            _unitOfWork.SaveChangesAsync().Wait();
             return true;
         }
 
 
         public bool DeleteEvent(int id)
         {
-            var eventToDelete = _context.Events.FirstOrDefault(e => e.Id == id);
-            if (eventToDelete == null) return false;
+            var result = _unitOfWork.Events.DeleteAsync(id).Result;
+            if (!result) return false;
 
-            _context.Events.Remove(eventToDelete);
-            _context.SaveChanges();
+            _unitOfWork.SaveChangesAsync().Wait();
             return true;
         }
 
         public List<EventAttendance> GetAllReviews()
         {
-            return _context.EventAttendances.Include(ea => ea.User).ToList();
+            return _unitOfWork.EventAttendances.GetAllWithReviewsAsync().Result.ToList();
         }
 
         public bool AddReview(EventAttendance review)
         {
             try
             {
-                _context.EventAttendances.Add(review);
-                _context.SaveChanges();
+                _unitOfWork.EventAttendances.AddAsync(review).Wait();
+                _unitOfWork.SaveChangesAsync().Wait();
                 return true;
             }
             catch
@@ -132,21 +132,7 @@ namespace CalendifyApp.Services
 
         public List<Event> SearchEvents(string? title, string? location, DateTime? startDate, DateTime? endDate)
         {
-            var query = _context.Events.AsQueryable();
-
-            if (!string.IsNullOrEmpty(title))
-                query = query.Where(e => e.Title.Contains(title));
-
-            if (!string.IsNullOrEmpty(location))
-                query = query.Where(e => e.Location.Contains(location));
-
-            if (startDate.HasValue)
-                query = query.Where(e => e.Date >= startDate.Value);
-
-            if (endDate.HasValue)
-                query = query.Where(e => e.Date <= endDate.Value);
-
-            return query.Include(e => e.EventAttendances).ToList();
+            return _unitOfWork.Events.SearchEventsAsync(title, location, startDate, endDate).Result.ToList();
         }
     }
 }

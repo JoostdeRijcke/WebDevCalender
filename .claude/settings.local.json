@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(yarn install)"
+      "Bash(yarn install)",
+      "Bash(cat:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill //F //PID 27024)"
     ]
   }
 }

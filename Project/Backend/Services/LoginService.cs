@@ -1,4 +1,5 @@
 using CalendifyApp.Models;
+using CalendifyApp.Repositories.Interfaces;
 using CalendifyApp.Utils;
 using System.Linq;
 
@@ -10,17 +11,17 @@ namespace CalendifyApp.Services
 
     public class LoginService : ILoginService
     {
-        private readonly MyContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public LoginService(MyContext context)
+        public LoginService(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         public LoginStatus CheckPassword(string email, string inputPassword)
         {
             // Check if the admin exists in the database
-            var admin = _context.Admin.SingleOrDefault(x => x.Email == email);
+            var admin = _unitOfWork.Admins.GetByEmailAsync(email).Result;
             if (admin != null)
             {
                 // Validate the password
@@ -36,7 +37,7 @@ namespace CalendifyApp.Services
 
         public LoginStatus CheckUserPassword(string email, string inputPassword)
         {
-            var user = _context.Users.SingleOrDefault(x => x.Email == email); // Match email
+            var user = _unitOfWork.Users.GetByEmailAsync(email).Result; // Match email
             if (user != null)
             {
                 if (user.Password == EncryptionHelper.EncryptPassword(inputPassword)) // Compare plain text
@@ -50,13 +51,13 @@ namespace CalendifyApp.Services
 
         public int Register(User user)
         {
-            if (_context.Users.SingleOrDefault(x => x.Email == user.Email) != null) return 3;
+            if (_unitOfWork.Users.EmailExistsAsync(user.Email).Result) return 3;
             if (user.Password.Length < 6) return 2;
             if (!user.Email.Contains("@") || !user.Email.Contains(".")) return 1;
             user.Password = EncryptionHelper.EncryptPassword(user.Password);
-            user.Id = _context.Users.Count() + 1;
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            user.Id = _unitOfWork.Users.GetNextUserIdAsync().Result;
+            _unitOfWork.Users.AddAsync(user).Wait();
+            _unitOfWork.SaveChangesAsync().Wait();
             return 0;
         }
 
@@ -71,12 +72,12 @@ namespace CalendifyApp.Services
         public bool Password(string email, string password)
         {
 
-            User user = _context.Users.SingleOrDefault(x => x.Email == email);
+            User user = _unitOfWork.Users.GetByEmailAsync(email).Result;
             if (user != null)
             {
                 user.Password = EncryptionHelper.EncryptPassword(password);
-                _context.Users.Update(user);
-                _context.SaveChanges();
+                _unitOfWork.Users.UpdateAsync(user).Wait();
+                _unitOfWork.SaveChangesAsync().Wait();
                 return true;
             }
             return false;
