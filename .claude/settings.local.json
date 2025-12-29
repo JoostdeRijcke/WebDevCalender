@@ -6,7 +6,8 @@
       "Bash(tasklist:*)",
       "Bash(findstr:*)",
       "Bash(netstat:*)",
-      "Bash(taskkill //F //PID 27024)"
+      "Bash(taskkill //F //PID 27024)",
+      "Bash(grep:*)"
     ]
   }
 }

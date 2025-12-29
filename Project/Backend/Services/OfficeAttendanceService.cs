@@ -1,8 +1,6 @@
 using CalendifyApp.Models;
 using CalendifyApp.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalendifyApp.Services
@@ -47,13 +45,5 @@ namespace CalendifyApp.Services
             var result = await _unitOfWork.Attendances.GetUserIdsByDateAsync(date);
             return result.ToList();
         }
-
-        // public async Task<List<DateOnly>> GetAttendanceDatesByUserAsync(int userId)
-        // {
-        //     return await _context.Attendance
-        //         .Where(a => a.UserId == userId)
-        //         .Select(a => a.Date)
-        //         .ToListAsync();
-        // }
     }
 }

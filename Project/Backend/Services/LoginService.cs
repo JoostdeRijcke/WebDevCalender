@@ -1,7 +1,6 @@
 using CalendifyApp.Models;
 using CalendifyApp.Repositories.Interfaces;
 using CalendifyApp.Utils;
-using System.Linq;
 
 namespace CalendifyApp.Services
 {

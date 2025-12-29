@@ -1,7 +1,5 @@
 using CalendifyApp.Models;
 using CalendifyApp.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using CalendifyApp.Services;
 
 namespace CalendifyApp.Services
 {

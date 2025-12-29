@@ -1,6 +1,5 @@
 using CalendifyApp.Models;
 using CalendifyApp.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace CalendifyApp.Services
 {
@@ -39,11 +38,8 @@ namespace CalendifyApp.Services
 
             if (eventEntity == null)
             {
-                Console.WriteLine($"No event found with ID: {id}");
                 return null;
             }
-
-            Console.WriteLine($"Event found: {eventEntity.Title}");
             return new DetailedEventDTO
             {
                 Id = eventEntity.Id,
