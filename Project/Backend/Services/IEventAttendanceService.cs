@@ -11,3 +11,6 @@ namespace CalendifyApp.Services
         void RemoveAttendance(AttendanceDto attendance);
     }
 }
+
+
+

@@ -30,6 +30,15 @@ namespace CalendifyApp.Services
             if (existingAttendance != null)
                 throw new ArgumentException("You are already registered for this event.");
 
+            if (eventEntity.MaxAttendees.HasValue)
+            {
+                var currentAttendeeCount = _context.EventAttendances
+                    .Count(ea => ea.EventId == attendance.EventId);
+
+                if (currentAttendeeCount >= eventEntity.MaxAttendees.Value)
+                    throw new ArgumentException("This event is at full capacity.");
+            }
+
             var newAttendance = new EventAttendance
             {
                 UserId = attendance.UserId,

@@ -24,29 +24,32 @@ const SearchPage: React.FC = () => {
   const [popupEvent, setPopupEvent] = useState<Event | null>(null);
   const [noAttendeesPopup, setNoAttendeesPopup] = useState<string | null>(null);
   const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
-  const [loggedInUserId] = useState<number>(2); // Mock logged-in user ID for testing
+  const [loggedInUserId, setLoggedInUserId] = useState<number | null>(null);
   const [attendedEvents, setAttendedEvents] = useState<number[]>([]);
 
   const navigate = useNavigate(); // Ensure this hook is used
 
-  // // Check if user is logged in
-  // useEffect(() => {
-  //   const checkUserLoggedIn = async () => {
-  //     try {
-  //       const response = await fetch('http://localhost:5001/api/IsUserLoggedIn', {
-  //         credentials: 'include',
-  //       });
-  //       if (response.status !== 200) {
-  //         navigate('/'); // Redirect to login page if not logged in
-  //       }
-  //     } catch (error) {
-  //       console.error('Error checking user login status:', error);
-  //       navigate('/'); // Redirect to login on error
-  //     }
-  //   };
+  // Check if user is logged in and get their ID
+  useEffect(() => {
+    const checkUserLoggedIn = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/GetCurrentUser', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const userData = await response.json();
+          setLoggedInUserId(userData.id);
+        } else {
+          navigate('/'); // Redirect to login page if not logged in
+        }
+      } catch (error) {
+        console.error('Error checking user login status:', error);
+        navigate('/'); // Redirect to login on error
+      }
+    };
 
-  //   checkUserLoggedIn();
-  // }, [navigate]);
+    checkUserLoggedIn();
+  }, [navigate]);
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -114,6 +117,10 @@ const SearchPage: React.FC = () => {
   };
 
   const handleAttendEvent = async (event: Event) => {
+    if (!loggedInUserId) {
+      alert('Please login to attend events');
+      return;
+    }
     try {
       const response = await fetch('http://localhost:5001/api/EventAttendance/attend', {
         method: 'POST',
@@ -133,6 +140,10 @@ const SearchPage: React.FC = () => {
   };
 
   const handleLeaveEvent = async (event: Event) => {
+    if (!loggedInUserId) {
+      alert('Please login to manage event attendance');
+      return;
+    }
     try {
       const response = await fetch('http://localhost:5001/api/EventAttendance/remove', {
         method: 'DELETE',

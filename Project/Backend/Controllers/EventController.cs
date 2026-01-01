@@ -38,7 +38,7 @@ namespace CalendifyApp.Controllers
         }
 
 
-        //[AdminFilter]
+        [AdminFilter]
         [HttpPost]
         public async Task<IActionResult> AddEvent([FromBody] DTOEvent eventDto)
         {
@@ -57,7 +57,7 @@ namespace CalendifyApp.Controllers
             return CreatedAtAction(nameof(GetEventById), new { id = createdEvent.Id }, createdEvent);
         }
 
-        //[AdminFilter]
+        [AdminFilter]
         [HttpPut("{id}")]
         public IActionResult UpdateEvent(int id, [FromBody] UpdateEventDTO updatedEvent)
         {
@@ -76,7 +76,7 @@ namespace CalendifyApp.Controllers
         }
 
 
-        //[AdminFilter]
+        [AdminFilter]
         [HttpDelete("{id}")]
         public IActionResult DeleteEvent(int id)
         {
@@ -98,12 +98,21 @@ namespace CalendifyApp.Controllers
         }
 
         [HttpPost("review")]
-        public IActionResult AddReview([FromBody] EventAttendance review)
+        public IActionResult AddReview([FromBody] ReviewDto reviewDto)
         {
+            var review = new EventAttendance
+            {
+                UserId = reviewDto.UserId,
+                EventId = reviewDto.EventId,
+                Rating = reviewDto.Rating,
+                Feedback = reviewDto.Feedback,
+                AttendedAt = reviewDto.AttendedAt
+            };
+
             var result = _eventService.AddReview(review);
             if (result)
                 return Ok("Review added successfully.");
-            
+
             return BadRequest("Failed to add the review.");
         }
 
@@ -116,5 +125,14 @@ namespace CalendifyApp.Controllers
             
             return Ok(events);
         }
+    }
+
+    public class ReviewDto
+    {
+        public int UserId { get; set; }
+        public int EventId { get; set; }
+        public int? Rating { get; set; }
+        public string? Feedback { get; set; }
+        public DateTime AttendedAt { get; set; }
     }
 }
