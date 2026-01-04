@@ -137,14 +137,14 @@ public class LoginController : Controller
     public IActionResult CheckCode([FromBody] CheckCode c)
     {
         if (_loginService.CheckCode(c.Code, c.Email)) return Ok();
-        return BadRequest();
+        return BadRequest("Code and email do not match.");
     }
 
     [HttpPut("password")]
     public IActionResult Password([FromBody] ResetPassword rp)
     {
         if (_loginService.Password(rp.Email, rp.Password)) return Ok();
-        return BadRequest();
+        return BadRequest("Password did not meet requirements.");
     }
 
     [AuthorizationFilter]
