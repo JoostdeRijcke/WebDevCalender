@@ -98,7 +98,7 @@ public class LoginController : Controller
         return Ok($"Logged in as {user}");
     }
 
-    
+
     [HttpGet("GetCurrentUser")]
     public IActionResult GetCurrentUser()
     {
@@ -169,4 +169,4 @@ public class LoginBody
     public string? Password { get; set; }
 }
 
-}
+
