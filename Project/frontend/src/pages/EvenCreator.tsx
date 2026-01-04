@@ -6,9 +6,10 @@ export const EventCreator: React.FC = () => {
   const [Title, setTitle] = useState("");
   const [Description, setDescription] = useState("");
   const [EventDate, setEventDate] = useState("");
-  const [StartTime, setStartTime] = useState(""); // Format: HH:mm:ss
-  const [EndTime, setEndTime] = useState(""); // Format: HH:mm:ss
+  const [StartTime, setStartTime] = useState("");
+  const [EndTime, setEndTime] = useState("");
   const [Location, setLocation] = useState("");
+  const [MaxAttendees, setMaxAttendees] = useState("");
 
   const navigate = useNavigate();
 
@@ -72,10 +73,11 @@ export const EventCreator: React.FC = () => {
       Title,
       Description,
       Date: EventDate,
-      StartTime: `${StartTime}:00`, // Add seconds manually
-      EndTime: `${EndTime}:00`, // Add seconds manually
+      StartTime: `${StartTime}:00`,
+      EndTime: `${EndTime}:00`,
       Location,
       AdminApproval: true,
+      MaxAttendees: MaxAttendees ? parseInt(MaxAttendees) : null,
     };
 
     try {
@@ -84,6 +86,7 @@ export const EventCreator: React.FC = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(eventData),
       });
 
@@ -95,6 +98,7 @@ export const EventCreator: React.FC = () => {
         setStartTime("");
         setEndTime("");
         setLocation("");
+        setMaxAttendees("");
       } else {
         const errorData = await response.json();
         console.error("Error creating event:", errorData);
@@ -155,6 +159,16 @@ export const EventCreator: React.FC = () => {
           placeholder="Location"
           value={Location}
           onChange={(e) => setLocation(e.target.value)}
+        />
+        <input
+          className="input"
+          type="text"
+          placeholder="Max Attendees (optional)"
+          value={MaxAttendees}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9]/g, '');
+            setMaxAttendees(value);
+          }}
         />
         <button className="create-button" onClick={handleCreateEvent}>
           Create Event

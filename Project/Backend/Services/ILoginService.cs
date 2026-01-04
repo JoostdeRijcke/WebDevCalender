@@ -13,4 +13,5 @@ public interface ILoginService
     public bool CheckCode(int code, string email);
     public bool ChangeCode(int code, string email);
     public bool Password(string email, string password);
+    public User? GetUserByEmail(string email);
 }

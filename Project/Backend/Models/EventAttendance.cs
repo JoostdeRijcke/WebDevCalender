@@ -19,7 +19,9 @@ namespace CalendifyApp.Models
         public string? Feedback { get; set; } 
 
         // Navigation Properties
+        [JsonIgnore]
         public User User { get; set; } = null!;
+        [JsonIgnore]
         public Event Event { get; set; } = null!;
     }
 

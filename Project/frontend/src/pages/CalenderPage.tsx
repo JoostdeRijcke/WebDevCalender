@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import '../styling/CalenderPage.css';
 import { useNavigate } from 'react-router-dom';
+import { ReviewModal } from '../ReviewModal';
 
+type EventAttendance = {
+  userId: number;
+  userName: string;
+  rating?: number;
+  feedback?: string;
+};
 
 type Event = {
   id: number;
@@ -10,11 +17,23 @@ type Event = {
   date: string;
   startTime: string;
   endTime: string;
-  EventAttendances: { userId: number; userName: string }[] | null;
+  maxAttendees?: number;
+  eventAttendances: EventAttendance[] | null;
 };
 
 
 export const CalendarPage: React.FC = () => {
+
+  const getEventColor = (title: string): string => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('meeting') || lowerTitle.includes('standup')) return '#2196f3';
+    if (lowerTitle.includes('workshop') || lowerTitle.includes('training')) return '#ff9800';
+    if (lowerTitle.includes('social') || lowerTitle.includes('party') || lowerTitle.includes('lunch')) return '#e91e63';
+    if (lowerTitle.includes('yoga') || lowerTitle.includes('fitness') || lowerTitle.includes('health')) return '#4caf50';
+    if (lowerTitle.includes('hackathon') || lowerTitle.includes('competition')) return '#9c27b0';
+    if (lowerTitle.includes('presentation') || lowerTitle.includes('demo')) return '#f44336';
+    return '#607d8b';
+  };
 
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
     const today = new Date();
@@ -95,14 +114,76 @@ export const CalendarPage: React.FC = () => {
 
   };
 
-  const handleAttendEvent = () => {//implement this
-    if (selectedEvent) {
-      console.log(`Attending event: ${selectedEvent.title}`);
+  const handleAttendEvent = async () => {
+    if (!selectedEvent) {
+      alert('Please select an event');
+      return;
+    }
+
+    if (!loggedIn && !isAdmin) {
+      alert('Please login to attend events');
+      return;
+    }
+
+    // For admins, we still try to make the request so backend can return proper error
+    // For regular users, currentUserId should be set
+    if (!isAdmin && !currentUserId) {
+      alert('Please login to attend events');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5001/api/EventAttendance/attend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId: currentUserId || 0, // Send 0 for admins (backend will reject anyway)
+          eventId: selectedEvent.id,
+        }),
+      });
+
+      if (response.ok) {
+        alert(`Successfully registered for ${selectedEvent.title}!`);
+        // Refresh events to update attendance count
+        await getEvents();
+        // Fetch the updated event details to refresh the selected event
+        const updatedEventResponse = await fetch(`http://localhost:5001/api/Events/${selectedEvent.id}`);
+        if (updatedEventResponse.ok) {
+          const updatedEvent = await updatedEventResponse.json();
+          setSelectedEvent(updatedEvent);
+        }
+      } else {
+        const errorText = await response.text();
+        alert(`Failed to register: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error attending event:', error);
+      alert('An error occurred while registering for the event');
     }
   };
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
+  const getCurrentUser = async () => {
+    try {
+      const response = await fetch('http://localhost:5001/api/GetCurrentUser', {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setCurrentUserId(userData.id);
+        console.log('Current user ID:', userData.id);
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
 
   const checkUserLoggedIn = async () => {
     try {
@@ -112,6 +193,7 @@ export const CalendarPage: React.FC = () => {
       if (response.ok) {
         setLoggedIn(true);
         console.log('User is logged in.');
+        await getCurrentUser();
       } else {
         setLoggedIn(false);
         console.log('User is not logged in.');
@@ -215,6 +297,7 @@ export const CalendarPage: React.FC = () => {
                             key={event.id}
                             className="calendar-event"
                             onClick={() => handleEventSelect(event)}
+                            style={{ borderLeft: `4px solid ${getEventColor(event.title)}` }}
                           >
                             {event.title} - {event.startTime.split(":")[0] + ":" + event.startTime.split(":")[1]}
                           </div>
@@ -231,14 +314,71 @@ export const CalendarPage: React.FC = () => {
             <aside className="event-info">
               {selectedEvent ? (
                 <>
-                  <h3>{selectedEvent.title}</h3>
+                  <h3 style={{ marginBottom: '5px' }}>{selectedEvent.title}</h3>
+                  {isAdmin && (
+                    <p style={{ color: '#888', fontSize: '0.9em', margin: '5px 0 15px 0' }}>Event ID: {selectedEvent.id}</p>
+                  )}
+                  {(() => {
+                    const reviews = selectedEvent.eventAttendances?.filter(a => a.rating) || [];
+                    const avgRating = reviews.length > 0
+                      ? (reviews.reduce((sum, a) => sum + (a.rating || 0), 0) / reviews.length).toFixed(1)
+                      : 'No ratings yet';
+                    return (
+                      <div className="rating-display">
+                        {avgRating !== 'No ratings yet' && (
+                          <span className="stars-display">
+                            {'★'.repeat(Math.round(Number(avgRating)))}{'☆'.repeat(5 - Math.round(Number(avgRating)))}
+                          </span>
+                        )}
+                        <span className="rating-text">{avgRating} {reviews.length > 0 && `(${reviews.length} reviews)`}</span>
+                      </div>
+                    );
+                  })()}
                   <p>
-                    Atendees: {selectedEvent.EventAttendances?.length == null ? 0 : selectedEvent.EventAttendances?.length} <br />
+                    Attendees: {selectedEvent.eventAttendances?.length || 0}
+                    {selectedEvent.maxAttendees && ` / ${selectedEvent.maxAttendees}`}
+                    {selectedEvent.maxAttendees && (selectedEvent.eventAttendances?.length || 0) >= selectedEvent.maxAttendees && (
+                      <span className="event-full-badge"> (FULL)</span>
+                    )}
+                    <br />
                     Date: {selectedEvent.date.split("T")[0]} <br />
                     Time: {selectedEvent.startTime.split(":")[0] + ":" + selectedEvent.startTime.split(":")[1]} - {selectedEvent.endTime.split(":")[0] + ":" + selectedEvent.endTime.split(":")[1]}<br />
                     Description: {selectedEvent.description}
                   </p>
-                  <button onClick={handleAttendEvent}>Attend Event</button>
+                  <div className="event-actions">
+                    {!isAdmin && (
+                      <button
+                        onClick={handleAttendEvent}
+                        disabled={selectedEvent.maxAttendees ? (selectedEvent.eventAttendances?.length || 0) >= selectedEvent.maxAttendees : false}
+                      >
+                        {selectedEvent.maxAttendees && (selectedEvent.eventAttendances?.length || 0) >= selectedEvent.maxAttendees ? 'Event Full' : 'Attend Event'}
+                      </button>
+                    )}
+                    {isAdmin && (
+                      <p style={{ color: '#666', fontStyle: 'italic' }}>Admins can't attend events</p>
+                    )}
+                    {isAdmin ? (
+                      <button onClick={() => navigate('/reviews')} className="review-button">Check All Reviews</button>
+                    ) : (
+                      <button onClick={() => setShowReviewModal(true)} className="review-button">Leave Review</button>
+                    )}
+                  </div>
+                  {selectedEvent.eventAttendances && selectedEvent.eventAttendances.some(a => a.rating) && (
+                    <div className="reviews-list">
+                      <h4>Reviews:</h4>
+                      {selectedEvent.eventAttendances
+                        .filter(a => a.rating)
+                        .map((attendance, idx) => (
+                          <div key={idx} className="review-item">
+                            <div className="review-header">
+                              <strong>{attendance.userName}</strong>
+                              <span className="review-stars">{'★'.repeat(attendance.rating || 0)}</span>
+                            </div>
+                            {attendance.feedback && <p className="review-feedback">{attendance.feedback}</p>}
+                          </div>
+                        ))}
+                    </div>
+                  )}
                 </>
               ) : (
                 <p>No event selected</p>
@@ -258,6 +398,10 @@ export const CalendarPage: React.FC = () => {
                 Register new user
               </button></div> : <div></div>}
 
+            <button className="view-reviews-button" onClick={() => navigate('/reviews')}>
+              View All Reviews
+            </button>
+
             <button className="logout-button" onClick={logout}>
               Logout
             </button>
@@ -266,6 +410,16 @@ export const CalendarPage: React.FC = () => {
         </div>
       </div> :
         <h1>Please log in to use the calendar.</h1>}
+
+      {showReviewModal && selectedEvent && currentUserId && (
+        <ReviewModal
+          eventId={selectedEvent.id}
+          eventTitle={selectedEvent.title}
+          userId={currentUserId}
+          onClose={() => setShowReviewModal(false)}
+          onSubmitSuccess={() => getEvents()}
+        />
+      )}
     </div>
   );
 };

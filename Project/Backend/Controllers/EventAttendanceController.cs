@@ -23,6 +23,12 @@ namespace CalendifyApp.Controllers
         {
             try
             {
+                // Check if an admin is trying to attend
+                if (!string.IsNullOrEmpty(HttpContext.Session.GetString("AdminLoggedIn")))
+                {
+                    return BadRequest("Admins can't attend events.");
+                }
+
                 var result = _eventAttendanceService.AttendEvent(attendance);
                 return Ok(result);
             }

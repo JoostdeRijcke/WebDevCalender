@@ -98,6 +98,31 @@ public class LoginController : Controller
         return Ok($"Logged in as {user}");
     }
 
+    
+    [HttpGet("GetCurrentUser")]
+    public IActionResult GetCurrentUser()
+    {
+        var userEmail = HttpContext.Session.GetString("UserLoggedIn");
+        if (string.IsNullOrEmpty(userEmail))
+        {
+            return Unauthorized("You are not logged in.");
+        }
+
+        var user = _loginService.GetUserByEmail(userEmail);
+        if (user == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        // Return user info without sensitive data
+        return Ok(new
+        {
+            id = user.Id,
+            name = $"{user.FirstName} {user.LastName}",
+            email = user.Email
+        });
+    }
+
     [HttpPost("generatecode")]
     public IActionResult GenerateCode([FromBody] string email)
     {
@@ -144,3 +169,4 @@ public class LoginBody
     public string? Password { get; set; }
 }
 
+}

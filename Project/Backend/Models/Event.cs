@@ -13,8 +13,9 @@ namespace CalendifyApp.Models
         public TimeSpan EndTime { get; set; }
         public string Location { get; set; }
         public bool AdminApproval { get; set; }
+        public int? MaxAttendees { get; set; }
 
-        [JsonIgnore] // Prevent cyclic reference
+        [JsonIgnore]
         public ICollection<EventAttendance> EventAttendances { get; set; }
     }
 
@@ -28,6 +29,7 @@ namespace CalendifyApp.Models
         public TimeSpan EndTime { get; set; }
         public string Location { get; set; }
         public bool AdminApproval { get; set; }
+        public int? MaxAttendees { get; set; }
 
         public List<EventAttendanceDTO> EventAttendances { get; set; }
     }
@@ -49,6 +51,7 @@ namespace CalendifyApp.Models
         public string Location { get; set; }
         [Required]
         public bool AdminApproval { get; set; }
+        public int? MaxAttendees { get; set; }
     }
 
         public class UpdateEventDTO
@@ -67,9 +70,31 @@ namespace CalendifyApp.Models
         public string Location { get; set; }
         [Required]
         public bool AdminApproval { get; set; }
+        public int? MaxAttendees { get; set; }
     }
 
+    public class ReviewDTO
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public int EventId { get; set; }
+        public int Rating { get; set; }
+        public string Feedback { get; set; }
+        public DateTime AttendedAt { get; set; }
+        public UserDTO User { get; set; }
+        public EventInfoDTO Event { get; set; }
+    }
+
+    public class UserDTO
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+    }
+
+    public class EventInfoDTO
+    {
+        public string Title { get; set; }
+        public DateTime Date { get; set; }
+    }
 
 }
-
-    

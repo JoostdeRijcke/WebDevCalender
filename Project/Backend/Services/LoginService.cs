@@ -104,5 +104,10 @@ namespace CalendifyApp.Services
             return false;
         }
 
+        public User? GetUserByEmail(string email)
+        {
+            return _context.Users.SingleOrDefault(x => x.Email == email);
+        }
+
     }
 }

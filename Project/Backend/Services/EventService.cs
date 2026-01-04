@@ -15,7 +15,8 @@ namespace CalendifyApp.Services
         public List<DetailedEventDTO> GetAllEvents()
         {
             return _context.Events
-                .Include(e => e.EventAttendances) // Include for potential counts, even if null
+                .Include(e => e.EventAttendances)
+                    .ThenInclude(ea => ea.User)
                 .Select(e => new DetailedEventDTO
                 {
                     Id = e.Id,
@@ -25,7 +26,15 @@ namespace CalendifyApp.Services
                     StartTime = e.StartTime,
                     EndTime = e.EndTime,
                     Location = e.Location,
-                    AdminApproval = e.AdminApproval
+                    AdminApproval = e.AdminApproval,
+                    MaxAttendees = e.MaxAttendees,
+                    EventAttendances = e.EventAttendances.Select(ea => new EventAttendanceDTO
+                    {
+                        UserId = ea.UserId,
+                        UserName = ea.User.FirstName + " " + ea.User.LastName,
+                        Rating = ea.Rating ?? 0,
+                        Feedback = ea.Feedback ?? ""
+                    }).ToList()
                 })
                 .ToList();
         }
@@ -35,9 +44,10 @@ namespace CalendifyApp.Services
         {
             var eventEntity = _context.Events
                 .Include(e => e.EventAttendances)
+                    .ThenInclude(ea => ea.User)
                 .FirstOrDefault(e => e.Id == id);
 
-            if (eventEntity == null) 
+            if (eventEntity == null)
             {
                 Console.WriteLine($"No event found with ID: {id}");
                 return null;
@@ -53,7 +63,15 @@ namespace CalendifyApp.Services
                 StartTime = eventEntity.StartTime,
                 EndTime = eventEntity.EndTime,
                 Location = eventEntity.Location,
-                AdminApproval = eventEntity.AdminApproval
+                AdminApproval = eventEntity.AdminApproval,
+                MaxAttendees = eventEntity.MaxAttendees,
+                EventAttendances = eventEntity.EventAttendances.Select(ea => new EventAttendanceDTO
+                {
+                    UserId = ea.UserId,
+                    UserName = ea.User.FirstName + " " + ea.User.LastName,
+                    Rating = ea.Rating ?? 0,
+                    Feedback = ea.Feedback ?? ""
+                }).ToList()
             };
         }
 
@@ -62,7 +80,6 @@ namespace CalendifyApp.Services
 
         public async Task<Event> AddEvent(DTOEvent newEvent)
         {
-            // Map the DTO to the Event entity
             var eventToAdd = new Event
             {
                 Id = newEvent.Id,
@@ -72,14 +89,14 @@ namespace CalendifyApp.Services
                 StartTime = newEvent.StartTime,
                 EndTime = newEvent.EndTime,
                 Location = newEvent.Location,
-                AdminApproval = newEvent.AdminApproval
+                AdminApproval = newEvent.AdminApproval,
+                MaxAttendees = newEvent.MaxAttendees
             };
 
-            // Add event to the database
             _context.Events.Add(eventToAdd);
             await _context.SaveChangesAsync();
 
-            return eventToAdd; // Return the saved event
+            return eventToAdd;
         }
 
         public bool UpdateEvent(int id, UpdateEventDTO updatedEvent)
@@ -87,7 +104,6 @@ namespace CalendifyApp.Services
             var existingEvent = _context.Events.FirstOrDefault(e => e.Id == id);
             if (existingEvent == null) return false;
 
-            // Update fields
             existingEvent.Title = updatedEvent.Title;
             existingEvent.Description = updatedEvent.Description;
             existingEvent.Date = updatedEvent.Date;
@@ -95,6 +111,7 @@ namespace CalendifyApp.Services
             existingEvent.EndTime = updatedEvent.EndTime;
             existingEvent.Location = updatedEvent.Location;
             existingEvent.AdminApproval = updatedEvent.AdminApproval;
+            existingEvent.MaxAttendees = updatedEvent.MaxAttendees;
 
             _context.SaveChanges();
             return true;
@@ -111,18 +128,54 @@ namespace CalendifyApp.Services
             return true;
         }
 
-        public List<EventAttendance> GetAllReviews()
+        public List<ReviewDTO> GetAllReviews()
         {
-            return _context.EventAttendances.Include(ea => ea.User).ToList();
+            return _context.EventAttendances
+                .Where(ea => ea.Rating != null && ea.Rating > 0)
+                .Include(ea => ea.User)
+                .Include(ea => ea.Event)
+                .Select(ea => new ReviewDTO
+                {
+                    Id = ea.Id,
+                    UserId = ea.UserId,
+                    EventId = ea.EventId,
+                    Rating = ea.Rating ?? 0,
+                    Feedback = ea.Feedback ?? "",
+                    AttendedAt = ea.AttendedAt,
+                    User = new UserDTO
+                    {
+                        FirstName = ea.User.FirstName,
+                        LastName = ea.User.LastName
+                    },
+                    Event = new EventInfoDTO
+                    {
+                        Title = ea.Event.Title,
+                        Date = ea.Event.Date
+                    }
+                })
+                .ToList();
         }
 
         public bool AddReview(EventAttendance review)
         {
             try
             {
-                _context.EventAttendances.Add(review);
-                _context.SaveChanges();
-                return true;
+                var existingAttendance = _context.EventAttendances
+                    .FirstOrDefault(ea => ea.UserId == review.UserId && ea.EventId == review.EventId);
+
+                if (existingAttendance != null)
+                {
+                    existingAttendance.Rating = review.Rating;
+                    existingAttendance.Feedback = review.Feedback;
+                    _context.SaveChanges();
+                    return true;
+                }
+                else
+                {
+                    _context.EventAttendances.Add(review);
+                    _context.SaveChanges();
+                    return true;
+                }
             }
             catch
             {
