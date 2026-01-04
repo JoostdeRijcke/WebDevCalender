@@ -55,6 +55,7 @@ namespace CalendifyApp.Services
             if (!user.Email.Contains("@") || !user.Email.Contains(".")) return 1;
             user.Password = EncryptionHelper.EncryptPassword(user.Password);
             user.Id = _context.Users.Count() + 1;
+            user.restoreCode = null;
             _context.Users.Add(user);
             _context.SaveChanges();
             return 0;
