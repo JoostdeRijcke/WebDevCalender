@@ -6,6 +6,7 @@ export const ForgotPassword: React.FC = () => {
     const [email, setEmail] = useState<string>("");
     const [code, setCode] = useState<string>("");
     const [password, setPassword] = useState<string>("");
+    const [verifyPassword, setVerifyPassword] = useState<string>("");
 
     const [codeSent, setCodeSent] = useState<boolean>(false);
     const [codeVerified, setCodeVerified] = useState<boolean>(false);
@@ -54,6 +55,14 @@ export const ForgotPassword: React.FC = () => {
     }
 
     const handleChangePassword = async (): Promise<void> => {
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters long.");
+            return;
+        }
+        if (password !== verifyPassword) {
+            setError("Passwords do not match.");
+            return;
+        }
         const res = await fetch("http://localhost:5001/api/password", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -104,12 +113,20 @@ export const ForgotPassword: React.FC = () => {
 
                 {codeVerified && (
                     <>
+                        <p>Password must be at least 6 characters long</p>
                         <input
                             className="input"
                             type="password"
                             placeholder="New password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                        />
+                        <input
+                            className="input"
+                            type="password"
+                            placeholder="Verify password"
+                            value={verifyPassword}
+                            onChange={(e) => setVerifyPassword(e.target.value)}
                         />
 
                         <button className="create-button" onClick={handleChangePassword}>
