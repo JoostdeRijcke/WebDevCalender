@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./EventCreator.css";
+import "../styling/EventCreator.css";
 
 export const EventCreator: React.FC = () => {
   const [Title, setTitle] = useState("");

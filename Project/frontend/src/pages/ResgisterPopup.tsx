@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import "./RegisterPopup.css";
+import "../styling/RegisterPopup.css";
 
 export const RegisterPopup: React.FC = () => {
     const [firstName, setFirstName] = useState("");

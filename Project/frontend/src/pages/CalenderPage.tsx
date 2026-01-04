@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './CalenderPage.css';
+import '../styling/CalenderPage.css';
 import { useNavigate } from 'react-router-dom';
 import { ReviewModal } from './ReviewModal';
 
@@ -60,16 +60,10 @@ export const CalendarPage: React.FC = () => {
 
   const getEvents = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/Events', {
-        method: 'GET',
-      });
-
-
+      const response = await fetch('http://localhost:5001/api/Events');
 
       if (response.ok) {
-        console.log('Get events successful: ', response.statusText);
         const data = await response.json();
-        console.log('Data gekregen van API:', data);
         setEvents(data);
       } else {
         alert('Unable to load events')

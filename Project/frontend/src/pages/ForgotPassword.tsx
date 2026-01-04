@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import "./RegisterPopup.css";
+import "../styling/RegisterPopup.css";
 
 export const ForgotPassword: React.FC = () => {
     const [email, setEmail] = useState("");
