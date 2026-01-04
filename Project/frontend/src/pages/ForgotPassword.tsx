@@ -48,7 +48,7 @@ export const ForgotPassword: React.FC = () => {
 
         if (res.ok) {
             alert("Password changed successfully!");
-            navigate("/login");
+            navigate("/");
         } else setError("Failed to change password.");
     };
 
