@@ -7,6 +7,7 @@
         public string LastName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
+        public int? restoreCode { get; set; }
         public int RecurringDays { get; set; } // Assuming this is a string to store days in a specific format.
 
         public ICollection<EventAttendance> EventAttendances { get; set; }

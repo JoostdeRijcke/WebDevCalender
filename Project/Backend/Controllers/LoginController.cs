@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using CalendifyApp.Services;
 using CalendifyApp.Models;
 using CalendifyApp.Filters;
+using System.ComponentModel.DataAnnotations;
 
 namespace CalendifyApp.Controllers;
 
+[ApiController]
 [Route("api")]
 public class LoginController : Controller
 {
@@ -96,6 +98,7 @@ public class LoginController : Controller
         return Ok($"Logged in as {user}");
     }
 
+    
     [HttpGet("GetCurrentUser")]
     public IActionResult GetCurrentUser()
     {
@@ -120,14 +123,22 @@ public class LoginController : Controller
         });
     }
 
-    [HttpGet("ForgotPassword")]
-    public IActionResult ForgotPassword()
+    [HttpPost("generatecode")]
+    public IActionResult GenerateCode([FromBody] string email)
     {
-        return Ok(_loginService.ForgotPassword());
+        int code = _loginService.GenerateCode();
+        _loginService.ChangeCode(code, email);
+        return Ok(code);
     }
 
+    [HttpPost("checkcode")]
+    public IActionResult CheckCode([FromBody] int code, [FromBody] string email)
+    {
+        if (_loginService.CheckCode(code, email)) return Ok();
+        return BadRequest();
+    }
 
-    [HttpPut("Password")]
+    [HttpPut("password")]
     public IActionResult Password([FromBody] string email, [FromBody] string password)
     {
         if (_loginService.Password(email, password)) return Ok();
@@ -156,4 +167,6 @@ public class LoginBody
     public string? Username { get; set; }
     public string? Email { get; set; } // Added email for user login
     public string? Password { get; set; }
+}
+
 }

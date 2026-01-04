@@ -9,7 +9,9 @@ public interface ILoginService
     public LoginStatus CheckUserPassword(string username, string inputPassword);
 
     public int Register(User user);
-    public int ForgotPassword();
+    public int GenerateCode();
+    public bool CheckCode(int code, string email);
+    public bool ChangeCode(int code, string email);
     public bool Password(string email, string password);
     public User? GetUserByEmail(string email);
 }
