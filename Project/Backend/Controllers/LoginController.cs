@@ -4,6 +4,7 @@ using CalendifyApp.Services;
 using CalendifyApp.Models;
 using CalendifyApp.Filters;
 using System.ComponentModel.DataAnnotations;
+using System.Net.Mail;
 
 namespace CalendifyApp.Controllers;
 
@@ -124,26 +125,27 @@ public class LoginController : Controller
     }
 
     [HttpPost("generatecode")]
-    public IActionResult GenerateCode([FromBody] string email)
+    public IActionResult GenerateCode([FromBody] string Email)
     {
         int code = _loginService.GenerateCode();
-        _loginService.ChangeCode(code, email);
-        return Ok(code);
+        if (_loginService.ChangeCode(code, Email)) return Ok(code);
+        return BadRequest("Failed to change code.");
+
     }
 
-    // [HttpPost("checkcode")]
-    // public IActionResult CheckCode([FromBody] int code, [FromBody] string email)
-    // {
-    //     if (_loginService.CheckCode(code, email)) return Ok();
-    //     return BadRequest();
-    // }
+    [HttpPost("checkcode")]
+    public IActionResult CheckCode([FromBody] CheckCode c)
+    {
+        if (_loginService.CheckCode(c.Code, c.Email)) return Ok();
+        return BadRequest();
+    }
 
-    // [HttpPut("password")]
-    // public IActionResult Password([FromBody] string email, [FromBody] string password)
-    // {
-    //     if (_loginService.Password(email, password)) return Ok();
-    //     return BadRequest();
-    // }
+    [HttpPut("password")]
+    public IActionResult Password([FromBody] ResetPassword rp)
+    {
+        if (_loginService.Password(rp.Email, rp.Password)) return Ok();
+        return BadRequest();
+    }
 
     [AuthorizationFilter]
     [HttpGet("Logout")]
@@ -165,7 +167,17 @@ public class LoginController : Controller
 public class LoginBody
 {
     public string? Username { get; set; }
-    public string? Email { get; set; } // Added email for user login
+    public string? Email { get; set; }
     public string? Password { get; set; }
 }
 
+public class CheckCode
+{
+    public string Email { get; set; }
+    public int Code { get; set; }
+}
+public class ResetPassword
+{
+    public string Email { get; set; }
+    public string Password { get; set; }
+}

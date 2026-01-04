@@ -43,26 +43,6 @@ export const UserInput: React.FC = () => {
     }
   };
 
-  const forgotPassword = async () => {
-    try {
-      const response = await fetch('http://localhost:5001/api/ForgotPassword', {
-        method: 'GET',
-        credentials: 'include', // Include cookies
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data);
-        setHerstelCode(data);
-      } else {
-        alert(response.statusText);
-      }
-    } catch (error) {
-      setLoginStatus('Error checking login status.');
-      console.error('Error checking login status:', error);
-    }
-
-  };
 
   useEffect(() => {
     if (herstelCode) {
@@ -115,7 +95,7 @@ export const UserInput: React.FC = () => {
         </button>
 
         <button
-          onClick={forgotPassword}
+          onClick={() => navigate('/forgot')}
           style={{
             marginTop: '10px',
             padding: '5px 10px',

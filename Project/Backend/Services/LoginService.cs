@@ -95,6 +95,7 @@ namespace CalendifyApp.Services
         {
 
             User user = _context.Users.SingleOrDefault(x => x.Email == email);
+            if (password.Length < 6) return false;
             if (user != null)
             {
                 user.Password = EncryptionHelper.EncryptPassword(password);
