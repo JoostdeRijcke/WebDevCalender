@@ -61,11 +61,33 @@ namespace CalendifyApp.Services
         }
 
 
-        public int ForgotPassword()
+        public int GenerateCode()
         {
             Random random = new Random();
             int randomNumberInRange = random.Next(100000, 999999);
             return randomNumberInRange;
+        }
+
+        public bool ChangeCode(int code, string email)
+        {
+            var user = _context.Users.SingleOrDefault(x => x.Email == email);
+            if (user != null)
+            {
+                user.restoreCode = code;
+                _context.Users.Update(user);
+                _context.SaveChanges();
+                return true;
+            }
+            return false;
+        }
+        public bool CheckCode(int code, string email)
+        {
+            var user = _context.Users.SingleOrDefault(x => x.Email == email && x.restoreCode == code);
+            if (user != null)
+            {
+                return true;
+            }
+            return false;
         }
 
         public bool Password(string email, string password)
