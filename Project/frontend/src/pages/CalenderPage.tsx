@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styling/CalenderPage.css';
 import { useNavigate } from 'react-router-dom';
-import { ReviewModal } from './ReviewModal';
+import { ReviewModal } from '../ReviewModal';
 
 type EventAttendance = {
   userId: number;
@@ -357,7 +357,11 @@ export const CalendarPage: React.FC = () => {
                     {isAdmin && (
                       <p style={{ color: '#666', fontStyle: 'italic' }}>Admins can't attend events</p>
                     )}
-                    <button onClick={() => setShowReviewModal(true)} className="review-button">Leave Review</button>
+                    {isAdmin ? (
+                      <button onClick={() => navigate('/reviews')} className="review-button">Check All Reviews</button>
+                    ) : (
+                      <button onClick={() => setShowReviewModal(true)} className="review-button">Leave Review</button>
+                    )}
                   </div>
                   {selectedEvent.eventAttendances && selectedEvent.eventAttendances.some(a => a.rating) && (
                     <div className="reviews-list">

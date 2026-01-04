@@ -162,11 +162,13 @@ export const EventCreator: React.FC = () => {
         />
         <input
           className="input"
-          type="number"
+          type="text"
           placeholder="Max Attendees (optional)"
-          min="1"
           value={MaxAttendees}
-          onChange={(e) => setMaxAttendees(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9]/g, '');
+            setMaxAttendees(value);
+          }}
         />
         <button className="create-button" onClick={handleCreateEvent}>
           Create Event
