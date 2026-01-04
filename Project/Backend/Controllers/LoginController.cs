@@ -131,19 +131,19 @@ public class LoginController : Controller
         return Ok(code);
     }
 
-    [HttpPost("checkcode")]
-    public IActionResult CheckCode([FromBody] int code, [FromBody] string email)
-    {
-        if (_loginService.CheckCode(code, email)) return Ok();
-        return BadRequest();
-    }
+    // [HttpPost("checkcode")]
+    // public IActionResult CheckCode([FromBody] int code, [FromBody] string email)
+    // {
+    //     if (_loginService.CheckCode(code, email)) return Ok();
+    //     return BadRequest();
+    // }
 
-    [HttpPut("password")]
-    public IActionResult Password([FromBody] string email, [FromBody] string password)
-    {
-        if (_loginService.Password(email, password)) return Ok();
-        return BadRequest();
-    }
+    // [HttpPut("password")]
+    // public IActionResult Password([FromBody] string email, [FromBody] string password)
+    // {
+    //     if (_loginService.Password(email, password)) return Ok();
+    //     return BadRequest();
+    // }
 
     [AuthorizationFilter]
     [HttpGet("Logout")]
@@ -168,5 +168,4 @@ public class LoginBody
     public string? Email { get; set; } // Added email for user login
     public string? Password { get; set; }
 }
-
 
