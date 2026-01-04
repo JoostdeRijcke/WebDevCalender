@@ -21,29 +21,43 @@ export const ForgotPassword: React.FC = () => {
         const res = await fetch("http://localhost:5001/api/generatecode", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify(email),
         });
 
-        if (res.ok) setCodeSent(true);
+        if (res.ok) {
+            const generatedCode = await res.json();
+            console.log("Generated code:", generatedCode);
+            setCodeSent(true);
+        }
         else setError("Failed to send reset code.");
     };
+
+    const check = {
+        email: email,
+        code: Number(code),
+    }
 
     const handleVerifyCode = async (): Promise<void> => {
         const res = await fetch("http://localhost:5001/api/checkcode", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code, email }),
+            body: JSON.stringify(check),
         });
 
         if (res.ok) setCodeVerified(true);
         else setError("Invalid or expired code.");
     };
 
+    const reset = {
+        email: email,
+        password: password,
+    }
+
     const handleChangePassword = async (): Promise<void> => {
         const res = await fetch("http://localhost:5001/api/password", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify(reset),
         });
 
         if (res.ok) {
