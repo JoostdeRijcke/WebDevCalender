@@ -1,0 +1,17 @@
+{
+  "name": "webdevcalender",
+  "version": "1.0.0",
+  "description": "Calendar application with .NET backend and React frontend",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd Project/Backend && dotnet run",
+    "start:frontend": "cd Project/frontend && npm start",
+    "install:all": "cd Project/frontend && npm install",
+    "build:backend": "cd Project/Backend && dotnet build",
+    "build:frontend": "cd Project/frontend && npm run build",
+    "build:all": "npm run build:backend && npm run build:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
