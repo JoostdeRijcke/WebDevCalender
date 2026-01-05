@@ -32,6 +32,31 @@ const SearchPage: React.FC = () => {
 
   // Check if user is logged in and get their ID
   useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/IsAdminLoggedIn', {
+          credentials: 'include',
+        });
+        console.log('IsAdminLoggedIn response status:', response.status);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('IsAdminLoggedIn response data:', data);
+          console.log('Setting isAdmin to:', data.isAdminLoggedIn === true);
+          setIsAdmin(data.isAdminLoggedIn === true);
+
+          // If admin, don't fetch user data
+          if (data.isAdminLoggedIn === true) {
+            console.log('User is admin - skipping user data fetch');
+            return;
+          }
+        } else {
+          console.log('IsAdminLoggedIn failed with status:', response.status);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+
     const checkUserLoggedIn = async () => {
       try {
         const response = await fetch('http://localhost:5001/api/GetCurrentUser', {
@@ -39,9 +64,15 @@ const SearchPage: React.FC = () => {
         });
         if (response.ok) {
           const userData = await response.json();
+          console.log('Got user data:', userData);
           setLoggedInUserId(userData.id);
         } else {
-          navigate('/'); // Redirect to login page if not logged in
+          console.log('GetCurrentUser failed - checking if admin');
+          // If not a user, check if admin
+          await checkAdminStatus();
+          if (!isAdmin) {
+            navigate('/'); // Redirect to login page if neither user nor admin
+          }
         }
       } catch (error) {
         console.error('Error checking user login status:', error);
@@ -49,23 +80,7 @@ const SearchPage: React.FC = () => {
       }
     };
 
-    const checkAdminStatus = async () => {
-      try {
-        const response = await fetch('http://localhost:5001/api/IsAdminLoggedIn', {
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Admin status check:', data);
-          setIsAdmin(data.isAdminLoggedIn === true);
-        }
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-      }
-    };
-
     checkUserLoggedIn();
-    checkAdminStatus();
   }, [navigate]);
   useEffect(() => {
     const fetchEvents = async () => {
@@ -189,6 +204,9 @@ const SearchPage: React.FC = () => {
     <div style={styles.container}>
       <div style={styles.popup}>
         <h1 style={styles.header}>Search Events</h1>
+        <div style={{ padding: '10px', backgroundColor: isAdmin ? 'red' : 'green', color: 'white', textAlign: 'center' }}>
+          DEBUG: isAdmin = {isAdmin ? 'TRUE' : 'FALSE'} | loggedInUserId = {loggedInUserId || 'NULL'}
+        </div>
         <input
           type="text"
           placeholder="Search for events"
@@ -198,42 +216,45 @@ const SearchPage: React.FC = () => {
         />
         <div style={styles.eventList}>
           {filteredEvents.length > 0 ? (
-            filteredEvents.map((event) => (
-              <div key={event.id} style={styles.eventItem}>
-                <h3>{event.title}</h3>
-                <p>{event.description}</p>
-                <p>
-                  Date: {new Date(event.date).toLocaleDateString()} | Time:{' '}
-                  {event.startTime} - {event.endTime}
-                </p>
-                <p>Location: {event.location}</p>
-                <button
-                  style={styles.button}
-                  onClick={() => handleViewAttendees(event)}
-                >
-                  View Attendees
-                </button>
-                {!isAdmin && (
-                  <>
-                    {attendedEvents.includes(event.id) ? (
-                      <button
-                        style={{ ...styles.button, backgroundColor: 'red' }}
-                        onClick={() => handleLeaveEvent(event)}
-                      >
-                        Leave Event
-                      </button>
-                    ) : (
-                      <button
-                        style={{ ...styles.button, backgroundColor: 'green' }}
-                        onClick={() => handleAttendEvent(event)}
-                      >
-                        Attend Event
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
-            ))
+            filteredEvents.map((event) => {
+              console.log('Rendering event - isAdmin:', isAdmin, 'Will show attend buttons:', !isAdmin);
+              return (
+                <div key={event.id} style={styles.eventItem}>
+                  <h3>{event.title}</h3>
+                  <p>{event.description}</p>
+                  <p>
+                    Date: {new Date(event.date).toLocaleDateString()} | Time:{' '}
+                    {event.startTime} - {event.endTime}
+                  </p>
+                  <p>Location: {event.location}</p>
+                  <button
+                    style={styles.button}
+                    onClick={() => handleViewAttendees(event)}
+                  >
+                    View Attendees
+                  </button>
+                  {!isAdmin && (
+                    <>
+                      {attendedEvents.includes(event.id) ? (
+                        <button
+                          style={{ ...styles.button, backgroundColor: 'red' }}
+                          onClick={() => handleLeaveEvent(event)}
+                        >
+                          Leave Event
+                        </button>
+                      ) : (
+                        <button
+                          style={{ ...styles.button, backgroundColor: 'green' }}
+                          onClick={() => handleAttendEvent(event)}
+                        >
+                          Attend Event
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })
           ) : (
             <p>No events found.</p>
           )}

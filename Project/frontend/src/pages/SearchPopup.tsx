@@ -44,8 +44,24 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
   const [accordionOpen, setAccordionOpen] = useState<boolean>(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const [viewAttendeesPopupOpen, setViewAttendeesPopupOpen] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/IsAdminLoggedIn', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[SearchPopup] Admin check:', data);
+          setIsAdmin(data.isAdminLoggedIn === true);
+        }
+      } catch (error) {
+        console.error('[SearchPopup] Error checking admin status:', error);
+      }
+    };
+
     const fetchEvents = async () => {
       try {
         const response = await fetch('http://localhost:5001/api/Events?onlyUpcoming=true');
@@ -59,6 +75,10 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
     };
 
     const fetchAttendedEvents = async () => {
+      if (isAdmin) {
+        console.log('[SearchPopup] User is admin, skipping attended events fetch');
+        return;
+      }
       try {
         const response = await fetch(
           `http://localhost:5001/api/EventAttendance/user/${loggedInUserId}/attended-events`
@@ -72,9 +92,12 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
       }
     };
 
+    checkAdminStatus();
     fetchEvents();
-    fetchAttendedEvents();
-  }, [loggedInUserId]);
+    if (loggedInUserId && !isAdmin) {
+      fetchAttendedEvents();
+    }
+  }, [loggedInUserId, isAdmin]);
 
   useEffect(() => {
     applyFilters();
@@ -214,6 +237,9 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
     <div style={styles.overlay}>
       <div style={styles.popup} ref={popupRef}>
         <h1 style={styles.header}>Search Events</h1>
+        <div style={{ padding: '10px', backgroundColor: isAdmin ? 'red' : 'green', color: 'white', textAlign: 'center', marginBottom: '10px' }}>
+          DEBUG: isAdmin = {isAdmin ? 'TRUE' : 'FALSE'} | loggedInUserId = {loggedInUserId || 'NULL'}
+        </div>
         <button style={styles.closeButton} onClick={onClose}>
           Close
         </button>
@@ -329,20 +355,24 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
                 >
                   View Attendees
                 </button>
-                {attendedEvents.includes(event.id) ? (
-                  <button
-                    style={{ ...styles.button, backgroundColor: 'red' }}
-                    onClick={() => handleLeaveEvent(event)}
-                  >
-                    Leave Event
-                  </button>
-                ) : (
-                  <button
-                    style={{ ...styles.button, backgroundColor: 'green' }}
-                    onClick={() => handleAttendEvent(event)}
-                  >
-                    Attend Event
-                  </button>
+                {!isAdmin && (
+                  <>
+                    {attendedEvents.includes(event.id) ? (
+                      <button
+                        style={{ ...styles.button, backgroundColor: 'red' }}
+                        onClick={() => handleLeaveEvent(event)}
+                      >
+                        Leave Event
+                      </button>
+                    ) : (
+                      <button
+                        style={{ ...styles.button, backgroundColor: 'green' }}
+                        onClick={() => handleAttendEvent(event)}
+                      >
+                        Attend Event
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             ))
