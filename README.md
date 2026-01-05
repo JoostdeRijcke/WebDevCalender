@@ -16,6 +16,15 @@ Start backend op `http://localhost:5001` en frontend op `http://localhost:3000`
 npm run install:all
 npm start
 ```
+if that doens't work use these commands:
+
+```
+start the backend by going to WebDevCalender\Project\backend
+dotnet run
+
+start the frontend by going to WebDevCalender\Project\frontend
+yarn start
+```
 
 ## Commando's
 
