@@ -43,6 +43,7 @@ public class LoginController : Controller
         if (!string.IsNullOrEmpty(loginBody.Email) &&
             _loginService.CheckPassword(loginBody.Email, loginBody.Password) == LoginStatus.Success)
         {
+            HttpContext.Session.Remove("UserLoggedIn"); // Clear any user session
             HttpContext.Session.SetString("AdminLoggedIn", $"{loginBody.Username}");
             return Ok("Successfully logged in as admin.");
         }
@@ -51,6 +52,7 @@ public class LoginController : Controller
         if (!string.IsNullOrEmpty(loginBody.Email) &&
             _loginService.CheckUserPassword(loginBody.Email, loginBody.Password) == LoginStatus.Success)
         {
+            HttpContext.Session.Remove("AdminLoggedIn"); // Clear any admin session
             HttpContext.Session.SetString("UserLoggedIn", $"{loginBody.Email}");
             return Ok("Successfully logged in as user.");
         }
@@ -81,11 +83,8 @@ public class LoginController : Controller
     [HttpGet("IsAdminLoggedIn")]
     public IActionResult IsAdminLoggedIn()
     {
-        if (HttpContext.Session.GetString("AdminLoggedIn") is null)
-        {
-            return Unauthorized("You are not logged in as admin.");
-        }
-        return Ok($"{HttpContext.Session.GetString("AdminLoggedIn")}");
+        var isAdmin = HttpContext.Session.GetString("AdminLoggedIn") is not null;
+        return Ok(new { isAdminLoggedIn = isAdmin });
     }
 
     [HttpGet("IsUserLoggedIn")]
@@ -152,6 +151,7 @@ public class LoginController : Controller
     public IActionResult Logout()
     {
         HttpContext.Session.Remove("UserLoggedIn");
+        HttpContext.Session.Remove("AdminLoggedIn");
         return Ok("Logged out.");
     }
 
@@ -160,6 +160,7 @@ public class LoginController : Controller
     public IActionResult AdminLogout()
     {
         HttpContext.Session.Remove("AdminLoggedIn");
+        HttpContext.Session.Remove("UserLoggedIn");
         return Ok("Logged out.");
     }
 }
