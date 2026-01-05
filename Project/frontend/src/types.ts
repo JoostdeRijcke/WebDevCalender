@@ -6,6 +6,8 @@ export interface Event {
     startTime: string; // e.g. "09:00"
     endTime: string; // e.g. "10:00"
     location: string;
+    maxAttendees?: number | null;
+    eventAttendances?: Array<{ userId: number; userName: string }>;
 }
 
 

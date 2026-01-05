@@ -92,10 +92,16 @@ export const RegisterPopup: React.FC = () => {
                 <input
                     className="input"
                     type="number"
+                    min={1}
                     max={7}
                     placeholder="1-7"
                     value={recurringDays}
-                    onChange={(e) => setRecurringDays(e.target.value)}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "" || (Number(value) >= 1 && Number(value) <= 7)) {
+                            setRecurringDays(value);
+                        }
+                    }}
                 />
                 <button className="create-button" onClick={handleCreateUser}>
                     Create User

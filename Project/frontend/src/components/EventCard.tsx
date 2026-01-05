@@ -10,6 +10,11 @@ type Props = {
 };
 
 const EventCard: React.FC<Props> = ({ event, isAttending, onViewAttendees, onAttend, onLeave }) => {
+    console.log('Event data:', event);
+    const currentAttendees = event.eventAttendances?.length || 0;
+    const maxAttendees = event.maxAttendees;
+    const isFull = maxAttendees ? currentAttendees >= maxAttendees : false;
+
     return (
         <div
             style={{
@@ -26,6 +31,10 @@ const EventCard: React.FC<Props> = ({ event, isAttending, onViewAttendees, onAtt
                 Date: {new Date(event.date).toLocaleDateString()} | Time: {event.startTime} - {event.endTime}
             </p>
             <p>Location: {event.location}</p>
+            <p>
+                Attendees: {maxAttendees ? `${currentAttendees}/${maxAttendees}` : currentAttendees}
+                {isFull && <span style={{ color: "#dc3545", fontWeight: "bold", marginLeft: 8 }}>FULL</span>}
+            </p>
 
 
             <div>
@@ -46,10 +55,16 @@ const EventCard: React.FC<Props> = ({ event, isAttending, onViewAttendees, onAtt
                     </button>
                 ) : (
                     <button
-                        style={{ ...btnStyle, backgroundColor: "#28a745" }}
-                        onClick={() => onAttend(event)}
+                        style={{
+                            ...btnStyle,
+                            backgroundColor: isFull ? "#6c757d" : "#28a745",
+                            cursor: isFull ? "not-allowed" : "pointer",
+                            opacity: isFull ? 0.6 : 1
+                        }}
+                        onClick={() => !isFull && onAttend(event)}
+                        disabled={isFull}
                     >
-                        Attend Event
+                        {isFull ? "Event Full" : "Attend Event"}
                     </button>
                 )}
             </div>
