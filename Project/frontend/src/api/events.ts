@@ -1,20 +1,76 @@
-import { Event, Attendee } from "../types";
+import { apiRequest } from './client';
+import { Event, Attendee } from '../types';
 
-
-const BASE_URL = "http://localhost:5001/api";
-
-
-export async function getEvents(onlyUpcoming = true): Promise<Event[]> {
-    const url = `${BASE_URL}/Events?onlyUpcoming=${onlyUpcoming ? "true" : "false"}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`getEvents failed: ${res.status}`);
-    return res.json();
+export interface EventCreateData {
+  id: number;
+  title: string;
+  description: string;
+  date: Date;
+  startTime: string;
+  endTime: string;
+  location: string;
+  adminApproval: boolean;
+  maxAttendees?: number;
 }
 
+export interface EventUpdateData {
+  title: string;
+  description: string;
+  date: Date;
+  startTime: string;
+  endTime: string;
+  location: string;
+  adminApproval: boolean;
+  maxAttendees?: number;
+}
 
+export interface SearchParams {
+  title?: string;
+  location?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export async function getEvents(onlyUpcoming = true): Promise<Event[]> {
+  const url = `/Events?onlyUpcoming=${onlyUpcoming ? 'true' : 'false'}`;
+  return apiRequest<Event[]>(url);
+}
+
+export async function getEventById(eventId: number): Promise<Event> {
+  return apiRequest<Event>(`/Events/${eventId}`);
+}
 
 export async function getEventAttendees(eventId: number): Promise<Attendee[]> {
-    const res = await fetch(`${BASE_URL}/EventAttendance/attendees/${eventId}`);
-    if (!res.ok) throw new Error(`getEventAttendees failed: ${res.status}`);
-    return res.json();
+  return apiRequest<Attendee[]>(`/EventAttendance/attendees/${eventId}`);
+}
+
+export async function createEvent(eventData: EventCreateData): Promise<Event> {
+  return apiRequest<Event>('/Events', {
+    method: 'POST',
+    body: eventData,
+  });
+}
+
+export async function updateEvent(eventId: number, eventData: EventUpdateData): Promise<void> {
+  await apiRequest(`/Events/${eventId}`, {
+    method: 'PUT',
+    body: eventData,
+  });
+}
+
+export async function deleteEvent(eventId: number): Promise<void> {
+  await apiRequest(`/Events/${eventId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function searchEvents(params: SearchParams): Promise<Event[]> {
+  const queryParams = new URLSearchParams();
+
+  if (params.title) queryParams.append('title', params.title);
+  if (params.location) queryParams.append('location', params.location);
+  if (params.startDate) queryParams.append('startDate', params.startDate.toISOString());
+  if (params.endDate) queryParams.append('endDate', params.endDate.toISOString());
+
+  return apiRequest<Event[]>(`/Events/search?${queryParams.toString()}`);
 }

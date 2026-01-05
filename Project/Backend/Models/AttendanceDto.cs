@@ -1,4 +1,4 @@
-namespace CalendifyApp
+namespace CalendifyApp.Models
 {
     public class AttendanceDto
     {

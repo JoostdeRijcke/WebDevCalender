@@ -9,8 +9,7 @@ import { AlterEvent } from './AlterEvent';
 import { RegisterPopup } from './ResgisterPopup';
 import { DeleteEvent } from './DeletePopup';
 import { ForgotPassword } from './ForgotPassword';
-import { ReviewsPage } from '../ReviewsPage';
-
+import { ReviewsPage } from './ReviewsPage';
 import SearchPage from './SearchPage';
 import './Styles.css';
 

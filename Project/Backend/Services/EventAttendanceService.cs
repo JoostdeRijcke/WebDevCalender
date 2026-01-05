@@ -1,4 +1,5 @@
 using CalendifyApp.Models;
+using CalendifyApp.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using CalendifyApp.Services;
 
@@ -6,17 +7,17 @@ namespace CalendifyApp.Services
 {
     public class EventAttendanceService : IEventAttendanceService
     {
-        private readonly MyContext _context;
+        private readonly IEventAttendanceRepository _eventAttendanceRepository;
 
-        public EventAttendanceService(MyContext context)
+        public EventAttendanceService(IEventAttendanceRepository eventAttendanceRepository)
         {
-            _context = context;
+            _eventAttendanceRepository = eventAttendanceRepository;
         }
 
         public string AttendEvent(AttendanceDto attendance)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Id == attendance.UserId);
-            var eventEntity = _context.Events.FirstOrDefault(e => e.Id == attendance.EventId);
+            var user = _eventAttendanceRepository.GetUserById(attendance.UserId);
+            var eventEntity = _eventAttendanceRepository.GetEventById(attendance.EventId);
 
             if (user == null || eventEntity == null)
                 throw new ArgumentException("User or event not found.");
@@ -24,16 +25,14 @@ namespace CalendifyApp.Services
             if (eventEntity.Date.Add(eventEntity.StartTime) < DateTime.Now)
                 throw new ArgumentException("The event has already started or ended.");
 
-            var existingAttendance = _context.EventAttendances
-                .FirstOrDefault(ea => ea.UserId == attendance.UserId && ea.EventId == attendance.EventId);
+            var existingAttendance = _eventAttendanceRepository.GetAttendance(attendance.UserId, attendance.EventId);
 
             if (existingAttendance != null)
                 throw new ArgumentException("You are already registered for this event.");
 
             if (eventEntity.MaxAttendees.HasValue)
             {
-                var currentAttendeeCount = _context.EventAttendances
-                    .Count(ea => ea.EventId == attendance.EventId);
+                var currentAttendeeCount = _eventAttendanceRepository.GetAttendeeCount(attendance.EventId);
 
                 if (currentAttendeeCount >= eventEntity.MaxAttendees.Value)
                     throw new ArgumentException("This event is at full capacity.");
@@ -46,34 +45,22 @@ namespace CalendifyApp.Services
                 AttendedAt = DateTime.Now
             };
 
-            _context.EventAttendances.Add(newAttendance);
-            _context.SaveChanges();
+            _eventAttendanceRepository.AddAttendance(newAttendance);
+            _eventAttendanceRepository.SaveChanges();
 
             return "Registration successfully recorded.";
         }
 
         public IEnumerable<object> GetEventAttendees(int eventId)
         {
-            var eventEntity = _context.Events.FirstOrDefault(e => e.Id == eventId);
+            var eventEntity = _eventAttendanceRepository.GetEventById(eventId);
             if (eventEntity == null)
             {
                 // Return an empty list if the event does not exist
                 return Enumerable.Empty<object>();
             }
 
-            var attendees = _context.EventAttendances
-                .Where(ea => ea.EventId == eventId)
-                .Include(ea => ea.User)
-                .Select(ea => new
-                {
-                    ea.UserId,
-                    UserName = $"{ea.User.FirstName} {ea.User.LastName}",
-                    ea.AttendedAt
-                })
-                .ToList();
-
-            // Return the list, even if it is empty
-            return attendees;
+            return _eventAttendanceRepository.GetAttendeesByEventId(eventId);
         }
 
 
@@ -82,23 +69,11 @@ namespace CalendifyApp.Services
             if (userId <= 0)
                 throw new ArgumentException("Invalid user ID. Please provide a positive integer value.");
 
-            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            var user = _eventAttendanceRepository.GetUserById(userId);
             if (user == null)
                 throw new ArgumentException("User not found.");
 
-            var events = _context.EventAttendances
-                .Where(ea => ea.UserId == userId)
-                .Include(ea => ea.Event)
-                .Select(ea => new
-                {
-                    ea.Event.Id,
-                    ea.Event.Title,
-                    ea.Event.Date,
-                    ea.Event.StartTime,
-                    ea.Event.EndTime,
-                    ea.AttendedAt
-                })
-                .ToList();
+            var events = _eventAttendanceRepository.GetEventsByUserId(userId);
 
             if (!events.Any())
                 throw new ArgumentException("No attended events found for this user.");
@@ -108,14 +83,13 @@ namespace CalendifyApp.Services
 
         public void RemoveAttendance(AttendanceDto attendance)
         {
-            var attendanceRecord = _context.EventAttendances
-                .FirstOrDefault(ea => ea.UserId == attendance.UserId && ea.EventId == attendance.EventId);
+            var attendanceRecord = _eventAttendanceRepository.GetAttendance(attendance.UserId, attendance.EventId);
 
             if (attendanceRecord == null)
                 throw new ArgumentException("Attendance not found.");
 
-            _context.EventAttendances.Remove(attendanceRecord);
-            _context.SaveChanges();
+            _eventAttendanceRepository.RemoveAttendance(attendanceRecord);
+            _eventAttendanceRepository.SaveChanges();
         }
     }
 }

@@ -1,160 +1,359 @@
-// src/pages/SearchPage.tsx
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Event, Attendee } from "../types";
-import SearchBar from "../components/SearchBar";
-import EventsList from "../components/EventsList";
-import Modal from "../components/Modal";
-import AttendeesList from "../components/AttendeesList";
-import { getEvents, getEventAttendees } from "../api/events";
-import { attendEvent, getAttendedEventsByUser, leaveEvent } from "../api/attendance";
-import { eventEndDate } from "../utils/EventTime";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Ensure this is correctly imported
+
+interface Event {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+}
+
+interface Attendee {
+  userId: number;
+  userName: string;
+}
 
 const SearchPage: React.FC = () => {
-    // ---------- State ----------
-    const [events, setEvents] = useState<Event[]>([]);
-    const [search, setSearch] = useState("");
-    const [attendedIds, setAttendedIds] = useState<number[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [popupEvent, setPopupEvent] = useState<Event | null>(null);
+  const [noAttendeesPopup, setNoAttendeesPopup] = useState<string | null>(null);
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
+  const [loggedInUserId, setLoggedInUserId] = useState<number | null>(null);
+  const [attendedEvents, setAttendedEvents] = useState<number[]>([]);
 
-    const [attendees, setAttendees] = useState<Attendee[]>([]);
-    const [activeEvent, setActiveEvent] = useState<Event | null>(null);
+  const navigate = useNavigate(); // Ensure this hook is used
 
-    const [infoMessage, setInfoMessage] = useState<string | null>(null);
-
-    const [loggedInUserId] = useState<number>(2); // mock user
-    const navigate = useNavigate();
-
-    // ---------- Data laden ----------
-    useEffect(() => {
-        const load = async () => {
-            try {
-                // Backend filtert nu al op toekomstige events
-                const [evs, myEvs] = await Promise.all([
-                    getEvents(true), // onlyUpcoming = true
-                    getAttendedEventsByUser(loggedInUserId),
-                ]);
-                setEvents(evs);
-                setAttendedIds(myEvs.map((e) => e.id));
-            } catch (e) {
-                console.error("Error loading events:", e);
-            }
-        };
-        load();
-    }, [loggedInUserId]);
-
-    // ---------- Sort helper (binnen component) ----------
-    const byEndAsc = (a: Event, b: Event) => {
-        const ta = eventEndDate(a)?.getTime() ?? Number.POSITIVE_INFINITY;
-        const tb = eventEndDate(b)?.getTime() ?? Number.POSITIVE_INFINITY;
-        return ta - tb;
-    };
-
-    // ---------- Filter + zoek ----------
-    const filteredEvents = useMemo<Event[]>(() => {
-        // Backend heeft al gefilterd op toekomstige events
-        // Hier alleen sorteren en zoeken
-        const sorted = events.slice().sort(byEndAsc);
-
-        const q = (search ?? "").trim().toLowerCase();
-        return q ? sorted.filter((e: Event) => e.title.toLowerCase().includes(q)) : sorted;
-    }, [events, search]);
-
-    // ---------- Handlers ----------
-    const handleViewAttendees = async (event: Event) => {
-        try {
-            const list = await getEventAttendees(event.id);
-            setAttendees(list);
-            setActiveEvent(event);
-            if (!list.length) {
-                setInfoMessage(`No attendees for "${event.title}" yet.`);
-            }
-        } catch (e) {
-            console.error(e);
+  // Check if user is logged in and get their ID
+  useEffect(() => {
+    const checkUserLoggedIn = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/GetCurrentUser', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const userData = await response.json();
+          setLoggedInUserId(userData.id);
+        } else {
+          navigate('/'); // Redirect to login page if not logged in
         }
+      } catch (error) {
+        console.error('Error checking user login status:', error);
+        navigate('/'); // Redirect to login on error
+      }
     };
 
-    const handleAttend = async (event: Event) => {
-        try {
-            await attendEvent(loggedInUserId, event.id);
-            setAttendedIds((prev) => (prev.includes(event.id) ? prev : [...prev, event.id]));
-            setInfoMessage(`You have successfully attended "${event.title}".`);
-        } catch (e) {
-            console.error(e);
+    checkUserLoggedIn();
+  }, [navigate]);
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/Events');
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
         }
+        const data: Event[] = await response.json();
+        setEvents(data);
+        setFilteredEvents(data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
     };
 
-    const handleLeave = async (event: Event) => {
-        try {
-            await leaveEvent(loggedInUserId, event.id);
-            setAttendedIds((prev) => prev.filter((id) => id !== event.id));
-            setInfoMessage(`You have successfully left "${event.title}".`);
-        } catch (e) {
-            console.error(e);
+    const fetchAttendedEvents = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5001/api/EventAttendance/user/${loggedInUserId}/attended-events`
+        );
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
         }
+        const data: Event[] = await response.json();
+        const attendedEventIds = data.map((event) => event.id);
+        setAttendedEvents(attendedEventIds);
+      } catch (error) {
+        console.error('Error fetching attended events:', error);
+      }
     };
 
-    // ---------- Render ----------
-    return (
-        <div style={container}>
-            <div style={panel}>
-                <h1 style={header}>Search Events</h1>
-                <SearchBar value={search} onChange={setSearch} />
-                <EventsList
-                    events={filteredEvents}
-                    attendedEventIds={attendedIds}
-                    onViewAttendees={handleViewAttendees}
-                    onAttend={handleAttend}
-                    onLeave={handleLeave}
-                />
-            </div>
+    fetchEvents();
+    fetchAttendedEvents();
+  }, [loggedInUserId]);
 
-            {/* Attendees modal */}
-            <Modal
-                isOpen={!!activeEvent}
-                title={activeEvent ? `Attendees for "${activeEvent.title}"` : undefined}
-                onClose={() => setActiveEvent(null)}
-                width={420}
-            >
-                <AttendeesList attendees={attendees} />
-            </Modal>
-
-            {/* Info/confirmation modal */}
-            <Modal isOpen={!!infoMessage} onClose={() => setInfoMessage(null)} width={360}>
-                <p style={{ margin: 0 }}>{infoMessage}</p>
-            </Modal>
-        </div>
+  useEffect(() => {
+    const filtered = events.filter((event) =>
+      event.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
+    setFilteredEvents(filtered);
+  }, [searchQuery, events]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleViewAttendees = async (event: Event) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/EventAttendance/attendees/${event.id}`
+      );
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      const data: Attendee[] = await response.json();
+      if (data.length === 0) {
+        setNoAttendeesPopup(`No attendees for "${event.title}" yet.`);
+      } else {
+        setAttendees(data);
+        setPopupEvent(event);
+      }
+    } catch (error) {
+      console.error('Error fetching attendees:', error);
+    }
+  };
+
+  const handleAttendEvent = async (event: Event) => {
+    if (!loggedInUserId) {
+      alert('Please login to attend events');
+      return;
+    }
+    try {
+      const response = await fetch('http://localhost:5001/api/EventAttendance/attend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: loggedInUserId, eventId: event.id }),
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      setAttendedEvents([...attendedEvents, event.id]);
+      setConfirmationMessage(`You have successfully attended "${event.title}".`);
+    } catch (error) {
+      console.error('Error attending event:', error);
+    }
+  };
+
+  const handleLeaveEvent = async (event: Event) => {
+    if (!loggedInUserId) {
+      alert('Please login to manage event attendance');
+      return;
+    }
+    try {
+      const response = await fetch('http://localhost:5001/api/EventAttendance/remove', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: loggedInUserId, eventId: event.id }),
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      setAttendedEvents(attendedEvents.filter((id) => id !== event.id));
+      setConfirmationMessage(`You have successfully left "${event.title}".`);
+    } catch (error) {
+      console.error('Error leaving event:', error);
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.popup}>
+        <h1 style={styles.header}>Search Events</h1>
+        <input
+          type="text"
+          placeholder="Search for events"
+          value={searchQuery}
+          onChange={handleSearch}
+          style={styles.searchInput}
+        />
+        <div style={styles.eventList}>
+          {filteredEvents.length > 0 ? (
+            filteredEvents.map((event) => (
+              <div key={event.id} style={styles.eventItem}>
+                <h3>{event.title}</h3>
+                <p>{event.description}</p>
+                <p>
+                  Date: {new Date(event.date).toLocaleDateString()} | Time:{' '}
+                  {event.startTime} - {event.endTime}
+                </p>
+                <p>Location: {event.location}</p>
+                <button
+                  style={styles.button}
+                  onClick={() => handleViewAttendees(event)}
+                >
+                  View Attendees
+                </button>
+                {attendedEvents.includes(event.id) ? (
+                  <button
+                    style={{ ...styles.button, backgroundColor: 'red' }}
+                    onClick={() => handleLeaveEvent(event)}
+                  >
+                    Leave Event
+                  </button>
+                ) : (
+                  <button
+                    style={{ ...styles.button, backgroundColor: 'green' }}
+                    onClick={() => handleAttendEvent(event)}
+                  >
+                    Attend Event
+                  </button>
+                )}
+              </div>
+            ))
+          ) : (
+            <p>No events found.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Attendees Popup */}
+      {popupEvent && (
+        <div style={styles.attendeesPopup}>
+          <h2>Attendees for "{popupEvent.title}"</h2>
+          <ul>
+            {attendees.map((attendee) => (
+              <li key={attendee.userId}>{attendee.userName}</li>
+            ))}
+          </ul>
+          <button
+            style={{ ...styles.button, backgroundColor: 'gray' }}
+            onClick={() => setPopupEvent(null)}
+          >
+            Close
+          </button>
+        </div>
+      )}
+
+      {/* No Attendees Popup */}
+      {noAttendeesPopup && (
+        <div style={styles.noAttendeesPopup}>
+          <p>{noAttendeesPopup}</p>
+          <button
+            style={{ ...styles.button, backgroundColor: 'gray' }}
+            onClick={() => setNoAttendeesPopup(null)}
+          >
+            Close
+          </button>
+        </div>
+      )}
+
+      {/* Confirmation Popup */}
+      {confirmationMessage && (
+        <div style={styles.confirmationPopup}>
+          <p>{confirmationMessage}</p>
+          <button
+            style={{ ...styles.button, backgroundColor: 'gray' }}
+            onClick={() => setConfirmationMessage(null)}
+          >
+            Close
+          </button>
+        </div>
+      )}
+    </div>
+  );
 };
 
-// ---------- Styles ----------
-const container: React.CSSProperties = {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-    backgroundColor: "#f8f9fa",
-};
-
-const panel: React.CSSProperties = {
-    width: "100%",
-    maxWidth: 800,
-    backgroundColor: "#fff",
-    border: "1px solid #ccc",
-    borderRadius: 8,
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
-    maxHeight: "90vh",
-};
-
-const header: React.CSSProperties = {
-    margin: 0,
-    padding: 16,
-    fontSize: 24,
-    borderBottom: "1px solid #ddd",
-    textAlign: "center",
-    backgroundColor: "#f5f5f5",
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    backgroundColor: '#f8f9fa',
+  },
+  popup: {
+    width: '100%',
+    maxWidth: '800px',
+    backgroundColor: '#fff',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    maxHeight: '90vh',
+  },
+  header: {
+    margin: '0',
+    padding: '16px',
+    fontSize: '24px',
+    borderBottom: '1px solid #ddd',
+    textAlign: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  searchInput: {
+    width: 'calc(100% - 32px)',
+    margin: '16px',
+    padding: '10px',
+    fontSize: '16px',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+  },
+  eventList: {
+    overflowY: 'auto',
+    padding: '16px',
+    flex: '1',
+  },
+  eventItem: {
+    border: '1px solid #ddd',
+    padding: '10px',
+    marginBottom: '10px',
+    borderRadius: '4px',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+  },
+  button: {
+    margin: '5px',
+    padding: '10px 15px',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  attendeesPopup: {
+    position: 'fixed',
+    top: '20%',
+    left: '50%',
+    transform: 'translate(-50%, -20%)',
+    width: '400px',
+    backgroundColor: '#fff',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    padding: '16px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+  },
+  confirmationPopup: {
+    position: 'fixed',
+    top: '30%',
+    left: '50%',
+    transform: 'translate(-50%, -30%)',
+    width: '300px',
+    backgroundColor: '#fff',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    padding: '16px',
+    textAlign: 'center',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+  },
+  noAttendeesPopup: {
+    position: 'fixed',
+    top: '30%',
+    left: '50%',
+    transform: 'translate(-50%, -30%)',
+    width: '300px',
+    backgroundColor: '#fff',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    padding: '16px',
+    textAlign: 'center',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+  },
 };
 
 export default SearchPage;

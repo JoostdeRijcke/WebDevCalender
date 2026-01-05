@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styling/CalenderPage.css';
 import { useNavigate } from 'react-router-dom';
-import { ReviewModal } from '../ReviewModal';
+import { ReviewModal } from './ReviewModal';
 
 type EventAttendance = {
   userId: number;

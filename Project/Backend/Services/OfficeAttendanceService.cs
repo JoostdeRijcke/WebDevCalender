@@ -1,4 +1,5 @@
 using CalendifyApp.Models;
+using CalendifyApp.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,45 +9,31 @@ namespace CalendifyApp.Services
 {
     public class OfficeAttendanceService : IOfficeAttendanceService
     {
-        private readonly MyContext _context;
+        private readonly IAttendanceRepository _attendanceRepository;
 
-        public OfficeAttendanceService(MyContext context)
+        public OfficeAttendanceService(IAttendanceRepository attendanceRepository)
         {
-            _context = context;
+            _attendanceRepository = attendanceRepository;
         }
 
         public async Task<bool> IsDateBookedAsync(int userId, DateTime date)
         {
-            return await _context.Attendance.AnyAsync(a => a.UserId == userId && a.Date == date);
+            return await _attendanceRepository.IsDateBookedAsync(userId, date);
         }
 
         public async Task AddAttendanceAsync(Attendance attendance)
         {
-            await _context.Attendance.AddAsync(attendance);
-            await _context.SaveChangesAsync();
+            await _attendanceRepository.AddAttendanceAsync(attendance);
         }
 
         public async Task<bool> RemoveAttendanceAsync(int userId, DateTime date)
         {
-            var existingAttendance = await _context.Attendance
-                .FirstOrDefaultAsync(a => a.UserId == userId && a.Date == date);
-
-            if (existingAttendance != null)
-            {
-                _context.Attendance.Remove(existingAttendance);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            return false;
+            return await _attendanceRepository.RemoveAttendanceAsync(userId, date);
         }
 
         public async Task<List<int>> GetUserIdsByDateAsync(DateTime date)
         {
-            return await _context.Attendance
-                .Where(a => a.Date == date)
-                .Select(a => a.UserId)
-                .ToListAsync();
+            return await _attendanceRepository.GetUserIdsByDateAsync(date);
         }
 
         // public async Task<List<DateOnly>> GetAttendanceDatesByUserAsync(int userId)
