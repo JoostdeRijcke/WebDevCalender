@@ -232,65 +232,44 @@ footer {
   margin-top: 20px;
 }
 
-.create-event-button {
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.logout-button,
-.delete-event-button {
-  margin-left: 20px;
-  padding: 10px 20px;
-  background-color: #ff2600;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.register-button {
-  margin-left: 20px;
-  padding: 10px 20px;
-  background-color: #2f7802;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
+.month-view-button,
+.create-event-button,
+.delete-event-button,
+.register-button,
 .view-reviews-button {
-  margin-left: 20px;
-  padding: 10px 20px;
-  background-color: #9c27b0;
+  padding: 12px 24px;
+  background-color: #2196f3;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 16px;
+  margin-left: 10px;
+  transition: background-color 0.3s;
 }
 
-.create-event-button:hover {
-  background-color: #0056b3;
-}
-
-.logout-button:hover,
-.delete-event-button:hover {
-  background-color: #ba0202;
-}
-
-.register-button:hover {
-  background-color: #126502;
-}
-
+.month-view-button:hover,
+.create-event-button:hover,
+.delete-event-button:hover,
+.register-button:hover,
 .view-reviews-button:hover {
-  background-color: #7b1fa2;
+  background-color: #1976d2;
+}
+
+.logout-button {
+  padding: 12px 24px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 10px;
+  transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+  background-color: #d32f2f;
 }
 
 /* Responsive design */

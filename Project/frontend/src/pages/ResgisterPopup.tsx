@@ -12,7 +12,7 @@ export const RegisterPopup: React.FC = () => {
     const navigate = useNavigate();
 
     const handleBack = () => {
-        navigate('/calender');
+        navigate(-1);
     };
 
     const handleCreateUser = async () => {

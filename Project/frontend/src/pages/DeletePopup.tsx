@@ -223,7 +223,7 @@ export const DeleteEvent: React.FC = () => {
       </button>
 
       <button
-        onClick={() => navigate('/calender')}
+        onClick={() => navigate(-1)}
         style={{
           padding: '10px 20px',
           marginLeft: '10px',

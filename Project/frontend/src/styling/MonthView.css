@@ -9,7 +9,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
+  padding: 12px 30px;
   background-color: #fff;
   border-bottom: 2px solid #e0e0e0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -17,13 +17,13 @@
 
 .month-header h2 {
   margin: 0;
-  font-size: 28px;
+  font-size: 22px;
   color: #333;
 }
 
 .month-header button {
-  padding: 10px 20px;
-  font-size: 18px;
+  padding: 8px 16px;
+  font-size: 16px;
   background-color: #2196f3;
   color: white;
   border: none;
@@ -39,9 +39,9 @@
 .month-content {
   display: flex;
   flex: 1;
-  overflow: hidden;
-  gap: 20px;
-  padding: 20px;
+  gap: 12px;
+  padding: 12px;
+  min-height: 0;
 }
 
 .month-grid-container {
@@ -50,39 +50,46 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: auto;
-  padding: 20px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
 }
 
 .month-day-headers {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
+  flex-shrink: 0;
 }
 
 .month-day-header {
   text-align: center;
   font-weight: bold;
   color: #666;
-  padding: 10px;
+  padding: 6px;
   background-color: #f5f5f5;
   border-radius: 4px;
+  font-size: 12px;
 }
 
 .month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
   gap: 2px;
   background-color: #e0e0e0;
+  flex: 1;
+  min-height: 0;
 }
 
 .month-day {
-  min-height: 100px;
   background-color: #fff;
-  padding: 8px;
+  padding: 4px;
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s;
+  overflow: hidden;
 }
 
 .month-day:hover {
@@ -100,9 +107,9 @@
 }
 
 .month-day-number {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
   color: #333;
 }
 
@@ -117,9 +124,9 @@
 }
 
 .month-event {
-  font-size: 11px;
-  padding: 2px 4px;
-  border-radius: 3px;
+  font-size: 10px;
+  padding: 1px 3px;
+  border-radius: 2px;
   color: white;
   cursor: pointer;
   overflow: hidden;
@@ -133,9 +140,9 @@
 }
 
 .month-event-more {
-  font-size: 10px;
+  font-size: 9px;
   color: #666;
-  padding: 2px 4px;
+  padding: 1px 3px;
   font-style: italic;
 }
 
@@ -162,16 +169,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  padding: 20px;
+  gap: 8px;
+  padding: 10px 15px;
   background-color: #fff;
   border-top: 2px solid #e0e0e0;
   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .month-footer button {
-  padding: 12px 24px;
-  font-size: 16px;
+  padding: 10px 18px;
+  font-size: 14px;
   background-color: #2196f3;
   color: white;
   border: none;
@@ -190,4 +198,102 @@
 
 .month-footer button:last-child:hover {
   background-color: #d32f2f;
+}
+
+.rating-display {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stars-display {
+  font-size: 20px;
+  color: #ffc107;
+}
+
+.rating-text {
+  font-size: 14px;
+  color: #666;
+}
+
+.event-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-direction: column;
+}
+
+.event-actions button {
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.event-actions button:hover {
+  background-color: #45a049;
+}
+
+.event-actions button:disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.event-full-badge {
+  color: #f44336;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.review-button {
+  background-color: #2196f3 !important;
+}
+
+.review-button:hover {
+  background-color: #0b7dda !important;
+}
+
+.reviews-list {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.reviews-list h4 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.review-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.review-stars {
+  color: #ffc107;
+  font-size: 14px;
+}
+
+.review-feedback {
+  margin: 5px 0 0 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.4;
 }
