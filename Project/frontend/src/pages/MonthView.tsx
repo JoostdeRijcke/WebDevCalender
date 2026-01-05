@@ -157,6 +157,53 @@ export const MonthView: React.FC = () => {
     }
   };
 
+  const handleLeaveEvent = async () => {
+    if (!selectedEvent) {
+      alert('Please select an event');
+      return;
+    }
+
+    if (!loggedIn && !isAdmin) {
+      alert('Please login to attend events');
+      return;
+    }
+
+    if (!isAdmin && !currentUserId) {
+      alert('Please login to attend events');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5001/api/EventAttendance/remove', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId: currentUserId || 0,
+          eventId: selectedEvent.id,
+        }),
+      });
+
+      if (response.ok) {
+        alert(`Successfully unregistered for ${selectedEvent.title}!`);
+        await getEvents();
+        const updatedEventResponse = await fetch(`http://localhost:5001/api/Events/${selectedEvent.id}`);
+        if (updatedEventResponse.ok) {
+          const updatedEvent = await updatedEventResponse.json();
+          setSelectedEvent(updatedEvent);
+        }
+      } else {
+        const errorText = await response.text();
+        alert(`Failed to unregister: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error unattending event:', error);
+      alert('An error occurred while unregistering for the event');
+    }
+  };
+
   const getCurrentUser = async () => {
     try {
       const response = await fetch('http://localhost:5001/api/GetCurrentUser', {
@@ -355,12 +402,22 @@ export const MonthView: React.FC = () => {
                   </p>
                   <div className="event-actions">
                     {!isAdmin && (
-                      <button
-                        onClick={handleAttendEvent}
-                        disabled={selectedEvent.maxAttendees ? (selectedEvent.eventAttendances?.length || 0) >= selectedEvent.maxAttendees : false}
-                      >
-                        {selectedEvent.maxAttendees && (selectedEvent.eventAttendances?.length || 0) >= selectedEvent.maxAttendees ? 'Event Full' : 'Attend Event'}
-                      </button>
+                      <>
+                        {selectedEvent.eventAttendances?.find(a => a.userId === currentUserId) ? (
+                          <button
+                            style={{ backgroundColor: '#f44336', color: 'white' }}
+                            onClick={() => handleLeaveEvent()}
+                          >
+                            Leave Event
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleAttendEvent()}
+                          >
+                            Attend Event
+                          </button>
+                        )}
+                      </>
                     )}
                     {isAdmin && (
                       <p style={{ color: '#666', fontStyle: 'italic' }}>Admins can't attend events</p>
