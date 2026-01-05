@@ -26,6 +26,7 @@ const SearchPage: React.FC = () => {
   const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
   const [loggedInUserId, setLoggedInUserId] = useState<number | null>(null);
   const [attendedEvents, setAttendedEvents] = useState<number[]>([]);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   const navigate = useNavigate(); // Ensure this hook is used
 
@@ -48,7 +49,23 @@ const SearchPage: React.FC = () => {
       }
     };
 
+    const checkAdminStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/IsAdminLoggedIn', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Admin status check:', data);
+          setIsAdmin(data.isAdminLoggedIn === true);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+
     checkUserLoggedIn();
+    checkAdminStatus();
   }, [navigate]);
   useEffect(() => {
     const fetchEvents = async () => {
@@ -66,6 +83,10 @@ const SearchPage: React.FC = () => {
     };
 
     const fetchAttendedEvents = async () => {
+      if (isAdmin) {
+        console.log('Skipping fetchAttendedEvents for admin');
+        return;
+      }
       try {
         const response = await fetch(
           `http://localhost:5001/api/EventAttendance/user/${loggedInUserId}/attended-events`
@@ -82,8 +103,10 @@ const SearchPage: React.FC = () => {
     };
 
     fetchEvents();
-    fetchAttendedEvents();
-  }, [loggedInUserId]);
+    if (loggedInUserId && !isAdmin) {
+      fetchAttendedEvents();
+    }
+  }, [loggedInUserId, isAdmin]);
 
   useEffect(() => {
     const filtered = events.filter((event) =>
@@ -190,20 +213,24 @@ const SearchPage: React.FC = () => {
                 >
                   View Attendees
                 </button>
-                {attendedEvents.includes(event.id) ? (
-                  <button
-                    style={{ ...styles.button, backgroundColor: 'red' }}
-                    onClick={() => handleLeaveEvent(event)}
-                  >
-                    Leave Event
-                  </button>
-                ) : (
-                  <button
-                    style={{ ...styles.button, backgroundColor: 'green' }}
-                    onClick={() => handleAttendEvent(event)}
-                  >
-                    Attend Event
-                  </button>
+                {!isAdmin && (
+                  <>
+                    {attendedEvents.includes(event.id) ? (
+                      <button
+                        style={{ ...styles.button, backgroundColor: 'red' }}
+                        onClick={() => handleLeaveEvent(event)}
+                      >
+                        Leave Event
+                      </button>
+                    ) : (
+                      <button
+                        style={{ ...styles.button, backgroundColor: 'green' }}
+                        onClick={() => handleAttendEvent(event)}
+                      >
+                        Attend Event
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             ))
