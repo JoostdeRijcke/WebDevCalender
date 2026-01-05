@@ -5,6 +5,7 @@ import Header from './Header'; // Import the Header component
 import { UserInput } from './LoginPage';
 import { EventCreator } from './EvenCreator';
 import { CalendarPage } from './CalenderPage';
+import { MonthView } from './MonthView';
 import { AlterEvent } from './AlterEvent';
 import { RegisterPopup } from './ResgisterPopup';
 import { DeleteEvent } from './DeletePopup';
@@ -22,6 +23,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<UserInput />} />
           <Route path="/calender" element={<CalendarPage />} />
+          <Route path="/month" element={<MonthView />} />
           <Route path="/event" element={<EventCreator />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/alter" element={<AlterEvent />} />

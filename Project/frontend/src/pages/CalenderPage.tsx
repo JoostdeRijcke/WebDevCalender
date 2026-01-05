@@ -387,6 +387,10 @@ export const CalendarPage: React.FC = () => {
           </main>
 
           <footer>
+            <button className="month-view-button" onClick={() => navigate('/month')}>
+              Month View
+            </button>
+
             {isAdmin ? <div>
               <button className="create-event-button" onClick={handleCreateEvent}>
                 Create Event
