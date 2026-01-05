@@ -10,6 +10,18 @@ export const DeletePopup: React.FC<{ onDelete: () => void; onCancel: () => void 
         <button className="popup-cancel" onClick={onCancel}>Cancel</button>
         <button className="popup-delete" onClick={onDelete}>Delete</button>
       </div>
+    </div>import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
+import '../styling/DeletePopup.css';
+
+export const DeletePopup: React.FC<{ onDelete: () => void; onCancel: () => void }> = ({ onDelete, onCancel }) => {
+  return (
+    <div className="popup-overlay">
+      <div className="popup-container">
+        <div className="popup-message">Are you sure you want to delete this event?</div>
+        <button className="popup-cancel" onClick={onCancel}>Cancel</button>
+        <button className="popup-delete" onClick={onDelete}>Delete</button>
+      </div>
     </div>
   );
 };
@@ -63,6 +75,77 @@ export const DeleteEvent: React.FC = () => {
     if (!idToDelete) {
       alert("Please select or enter an event ID.");
       return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5001/api/Events/${idToDelete}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        alert("Event has been deleted.");
+        setShowPopup(false);
+        setEventId("");
+        setSelectedEventId(null);
+        fetchRecentEvents(); // Refresh the list
+      } else {
+        const errorText = await response.text();
+        console.error('Error deleting event:', errorText);
+        alert("Failed to delete the event: " + errorText);
+      }
+
+    } catch (error) {
+      console.error('Network error:', error);
+      alert("Failed to delete the event.");
+    }
+  };
+
+  // Function to handle cancel action
+  const handleCancelDelete = () => {
+    setShowPopup(false);
+  };
+
+  // Function to show the popup
+  const handleShowDeletePopup = () => {
+    if (useManualEntry) {
+      if (!eventId.trim()) {
+        alert("Please enter an event ID before attempting to delete.");
+      
+      {showPopup && (
+        <DeletePopup
+          onDelete={handleDeleteEvent}
+          onCancel={handleCancelDelete}
+        />
+      )}
+    </div>
+  );
+};
+
+  );
+};
+
+type Event = {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+};
+
+export const DeleteEvent: React.FC = () => {
+  const [showPopup, setShowPopup] = useState(false);
+  const [eventId, setEventId] = useState(""); // State to store the event ID
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [useManualEntry, setUseManualEntry] = useState(false);
+  const navigate = useNavigate();
+
     }
 
     try {
