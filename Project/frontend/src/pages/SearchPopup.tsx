@@ -36,6 +36,8 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
   const [filters, setFilters] = useState<Filter[]>([]);
   const [newFilterType, setNewFilterType] = useState<FilterType>('dateRange');
   const [newFilterValue, setNewFilterValue] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [popupEvent, setPopupEvent] = useState<Event | null>(null);
@@ -54,11 +56,10 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
         });
         if (response.ok) {
           const data = await response.json();
-          console.log('[SearchPopup] Admin check:', data);
           setIsAdmin(data.isAdminLoggedIn === true);
         }
       } catch (error) {
-        console.error('[SearchPopup] Error checking admin status:', error);
+        console.error('Error checking admin status:', error);
       }
     };
 
@@ -76,7 +77,6 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
 
     const fetchAttendedEvents = async () => {
       if (isAdmin) {
-        console.log('[SearchPopup] User is admin, skipping attended events fetch');
         return;
       }
       try {
@@ -150,9 +150,16 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
   };
 
   const handleAddFilter = () => {
-    if (!newFilterValue) return;
-    setFilters([...filters, { type: newFilterType, value: newFilterValue }]);
-    setNewFilterValue('');
+    if (newFilterType === 'dateRange') {
+      if (!startDate || !endDate) return;
+      setFilters([...filters, { type: newFilterType, value: `${startDate} to ${endDate}` }]);
+      setStartDate('');
+      setEndDate('');
+    } else {
+      if (!newFilterValue) return;
+      setFilters([...filters, { type: newFilterType, value: newFilterValue }]);
+      setNewFilterValue('');
+    }
   };
 
   const handleRemoveFilter = (index: number) => {
@@ -237,9 +244,6 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
     <div style={styles.overlay}>
       <div style={styles.popup} ref={popupRef}>
         <h1 style={styles.header}>Search Events</h1>
-        <div style={{ padding: '10px', backgroundColor: isAdmin ? 'red' : 'green', color: 'white', textAlign: 'center', marginBottom: '10px' }}>
-          DEBUG: isAdmin = {isAdmin ? 'TRUE' : 'FALSE'} | loggedInUserId = {loggedInUserId || 'NULL'}
-        </div>
         <button style={styles.closeButton} onClick={onClose}>
           Close
         </button>
@@ -305,19 +309,43 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose, loggedInUser
                   onChange={(e) => setNewFilterType(e.target.value as FilterType)}
                   style={styles.filterSelect}
                 >
-                  <option value="dateRange">Date Range (YYYY-MM-DD to YYYY-MM-DD)</option>
+                  <option value="dateRange">Date Range</option>
                   <option value="location">Location</option>
                   <option value="keyword">Keyword</option>
                 </select>
-                <input
-                  id="filterValue"
-                  name="filterValue"
-                  type="text"
-                  placeholder="Enter filter value"
-                  value={newFilterValue}
-                  onChange={(e) => setNewFilterValue(e.target.value)}
-                  style={styles.filterInput}
-                />
+                {newFilterType === 'dateRange' ? (
+                  <div style={styles.dateRangeContainer}>
+                    <input
+                      id="startDate"
+                      name="startDate"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      style={styles.filterInput}
+                      placeholder="Start Date"
+                    />
+                    <span style={{ padding: '0 8px' }}>to</span>
+                    <input
+                      id="endDate"
+                      name="endDate"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      style={styles.filterInput}
+                      placeholder="End Date"
+                    />
+                  </div>
+                ) : (
+                  <input
+                    id="filterValue"
+                    name="filterValue"
+                    type="text"
+                    placeholder="Enter filter value"
+                    value={newFilterValue}
+                    onChange={(e) => setNewFilterValue(e.target.value)}
+                    style={styles.filterInput}
+                  />
+                )}
                 <button onClick={handleAddFilter} style={styles.addFilterButton}>
                   Add
                 </button>
@@ -486,8 +514,21 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   filterSelect: {
     marginBottom: '8px',
+    padding: '8px',
+    fontSize: '14px',
+    borderRadius: '4px',
+    border: '1px solid #ccc',
   },
   filterInput: {
+    marginBottom: '8px',
+    padding: '8px',
+    fontSize: '14px',
+    borderRadius: '4px',
+    border: '1px solid #ccc',
+  },
+  dateRangeContainer: {
+    display: 'flex',
+    alignItems: 'center',
     marginBottom: '8px',
   },
   addFilterButton: {
