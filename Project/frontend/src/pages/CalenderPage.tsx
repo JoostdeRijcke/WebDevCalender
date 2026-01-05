@@ -421,28 +421,7 @@ export const CalendarPage: React.FC = () => {
                     {isAdmin ? (
                       <button onClick={() => navigate('/reviews')} className="review-button">Check All Reviews</button>
                     ) : (
-                      (() => {
-                        const eventDate = new Date(selectedEvent.date);
-                        const now = new Date();
-                        const isPastEvent = eventDate < now;
-                        const userAttendance = selectedEvent.eventAttendances?.find(a => a.userId === currentUserId);
-                        const hasAttended = !!userAttendance;
-                        const hasReviewed = userAttendance?.rating !== undefined && userAttendance?.rating !== null;
-
-                        if (!isPastEvent) {
-                          return null;
-                        }
-
-                        if (!hasAttended) {
-                          return <p style={{ color: '#666', fontStyle: 'italic', fontSize: '14px' }}>You must attend to leave a review</p>;
-                        }
-
-                        if (hasReviewed) {
-                          return <p style={{ color: '#666', fontStyle: 'italic', fontSize: '14px' }}>You already reviewed this event</p>;
-                        }
-
-                        return <button onClick={() => setShowReviewModal(true)} className="review-button">Leave Review</button>;
-                      })()
+                      <button onClick={() => setShowReviewModal(true)} className="review-button">Leave Review</button>
                     )}
                   </div>
                   {selectedEvent.eventAttendances && selectedEvent.eventAttendances.some(a => a.rating) && (
